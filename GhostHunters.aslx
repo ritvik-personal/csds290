@@ -1,14 +1,21 @@
-<!--Saved by Quest 5.9.9166.36226-->
 <asl version="580">
   <include ref="English.aslx" />
   <include ref="Core.aslx" />
+
   <game name="GhostHunters">
     <gameid>ee9ebba1-1b57-4393-a469-69c604228329</gameid>
-    <version>1.0</version>
+    <version>1.9</version>
     <firstpublished>2026</firstpublished>
     <author>Deep Desai, Noah Kiely, Ritvik Sajja, Sanchit Gupta, Vedant Gupta</author>
-    <start type="script">
-      game.heater_on = true
+
+    <start type="script"><![CDATA[
+      game.SECONDS_PER_TURN = 10
+      game.elapsed_seconds = 0
+
+      game.heater_on = false
+      game.heater_effective = false
+      game.heater_timer = 0
+
       rooms = NewObjectList()
       list add (rooms, room_master_bedroom)
       list add (rooms, room_kitchen)
@@ -18,18 +25,151 @@
       list add (rooms, room_study)
       list add (rooms, room_basement)
       list add (rooms, room_tv_room)
-      game.ghost_room = PickOneObject(rooms)
-      ghosts = Split("Shade;Poltergeist;Zar;Shinigami;Banshee;Lilu;Phong", ";")
-      game.current_ghost = PickOneString(ghosts)
-      msg ("Investigation Start. Find the ghost. Inventory limit: 4 items.")
-    </start>
+
+      ghost_pool = Split("Shade;Poltergeist;Zar;Shinigami;Banshee;Lilu;Phong", ";")
+
+      game.GHOST_COUNT = 3
+      game.ghost_rooms = NewObjectList()
+      game.ghost_types = NewStringList()
+
+      available_rooms = NewObjectList()
+      foreach (r, rooms) {
+        list add (available_rooms, r)
+      }
+
+      for (i, 1, game.GHOST_COUNT) {
+        g = PickOneString(ghost_pool)
+        list add (game.ghost_types, g)
+        list remove (ghost_pool, g)
+
+        rr = PickOneObject(available_rooms)
+        list add (game.ghost_rooms, rr)
+        list remove (available_rooms, rr)
+      }
+
+      msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
+      msg ("There are " + game.GHOST_COUNT + " presences in the house.")
+    ]]></start>
+
+    <turnscript type="script"><![CDATA[
+      game.elapsed_seconds = game.elapsed_seconds + game.SECONDS_PER_TURN
+
+      if (game.heater_timer > 0) {
+        game.heater_timer = game.heater_timer - game.SECONDS_PER_TURN
+        if (game.heater_timer <= 0) {
+          game.heater_effective = game.heater_on
+          if (game.heater_effective) {
+            msg ("You hear vents kick on. The house warms slightly.")
+          }
+          else {
+            msg ("The vents fall silent. The house begins to cool.")
+          }
+        }
+      }
+
+      if (game.elapsed_seconds mod 600 = 0) {
+        rooms2 = NewObjectList()
+        list add (rooms2, room_master_bedroom)
+        list add (rooms2, room_kitchen)
+        list add (rooms2, room_guest_bedroom)
+        list add (rooms2, room_dining_room)
+        list add (rooms2, room_home_office)
+        list add (rooms2, room_study)
+        list add (rooms2, room_basement)
+        list add (rooms2, room_tv_room)
+
+        new_occupied = NewObjectList()
+
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          current = game.ghost_rooms[i]
+          exits = NewObjectList()
+          foreach (e, current.exit) {
+            list add (exits, e.to)
+          }
+
+          if (ListCount(exits) > 0) {
+            next = PickOneObject(exits)
+          }
+          else {
+            next = PickOneObject(rooms2)
+          }
+
+          tries = 0
+          occupied = false
+          foreach (o, new_occupied) {
+            if (o = next) occupied = true
+          }
+
+          while (occupied and tries < 30) {
+            if (ListCount(exits) > 0) {
+              next = PickOneObject(exits)
+            }
+            else {
+              next = PickOneObject(rooms2)
+            }
+
+            occupied = false
+            foreach (o2, new_occupied) {
+              if (o2 = next) occupied = true
+            }
+
+            tries = tries + 1
+          }
+
+          if (not occupied) {
+            list add (new_occupied, next)
+            game.ghost_rooms[i] = next
+          }
+          else {
+            fallback = PickOneObject(rooms2)
+            tries2 = 0
+            occupied2 = false
+            foreach (x, new_occupied) {
+              if (x = fallback) occupied2 = true
+            }
+
+            while (occupied2 and tries2 < 30) {
+              fallback = PickOneObject(rooms2)
+              occupied2 = false
+              foreach (x2, new_occupied) {
+                if (x2 = fallback) occupied2 = true
+              }
+              tries2 = tries2 + 1
+            }
+
+            list add (new_occupied, fallback)
+            game.ghost_rooms[i] = fallback
+          }
+        }
+      }
+
+      if (item_candle.parent <> null and item_candle.parent <> player and item_candle.is_lit) {
+        candle_room = item_candle.parent
+        can_blow = false
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          if (game.ghost_rooms[i] = candle_room) {
+            t = game.ghost_types[i]
+            if (t = "Zar" or t = "Shinigami" or t = "Lilu") {
+              can_blow = true
+            }
+          }
+        }
+        if (can_blow and GetRandomInt(1, 100) <= 50) {
+          item_candle.is_lit = false
+          msg ("The candle sputters... and dies.")
+        }
+      }
+    ]]></turnscript>
+
   </game>
+
   <object name="room_master_bedroom">
     <inherit name="editor_room" />
     <alias>Master Bedroom</alias>
     <exit alias="east" to="room_kitchen" />
     <exit alias="south" to="room_dining_room" />
   </object>
+
   <object name="room_kitchen">
     <inherit name="editor_room" />
     <alias>Kitchen</alias>
@@ -37,12 +177,14 @@
     <exit alias="east" to="room_guest_bedroom" />
     <exit alias="south" to="room_storage_room" />
   </object>
+
   <object name="room_guest_bedroom">
     <inherit name="editor_room" />
     <alias>Guest Bedroom</alias>
     <exit alias="west" to="room_kitchen" />
     <exit alias="south" to="room_home_office" />
   </object>
+
   <object name="room_dining_room">
     <inherit name="editor_room" />
     <alias>Dining Room</alias>
@@ -50,6 +192,7 @@
     <exit alias="east" to="room_storage_room" />
     <exit alias="south" to="room_study" />
   </object>
+
   <object name="room_storage_room">
     <inherit name="editor_room" />
     <alias>Storage Room</alias>
@@ -57,6 +200,117 @@
     <exit alias="south" to="room_basement" />
     <exit alias="west" to="room_dining_room" />
     <exit alias="east" to="room_home_office" />
+
+    <object name="ghost_database_terminal">
+      <inherit name="editor_object" />
+      <alias>Ghost Database Terminal</alias>
+      <feature_use />
+
+      <attr name="ShowGuessMenu" type="script"><![CDATA[
+        if (not HasAttribute(game, "terminal_chosen")) {
+          game.terminal_chosen = NewStringList()
+        }
+
+        ghost_names = Split("Shade;Poltergeist;Zar;Shinigami;Banshee;Lilu;Phong", ";")
+
+        menu = NewStringList()
+        for (i, 0, ListCount(ghost_names) - 1) {
+          n = ghost_names[i]
+          selected = false
+          foreach (s, game.terminal_chosen) {
+            if (s = n) selected = true
+          }
+          if (selected) {
+            list add (menu, n + " (selected)")
+          }
+          else {
+            list add (menu, n)
+          }
+        }
+
+        list add (menu, "Submit")
+        list add (menu, "Reset")
+        list add (menu, "Cancel")
+
+        prompt = "Select " + game.GHOST_COUNT + " ghosts (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + "). Toggle names, then Submit."
+        show menu (prompt, menu, true) {
+          if (result = "Cancel") {
+            msg ("You step away from the terminal.")
+          }
+          else if (result = "Reset") {
+            game.terminal_chosen = NewStringList()
+            do (this, "ShowGuessMenu")
+          }
+          else if (result = "Submit") {
+            if (ListCount(game.terminal_chosen) <> game.GHOST_COUNT) {
+              msg ("You must select exactly " + game.GHOST_COUNT + " ghosts before submitting.")
+              do (this, "ShowGuessMenu")
+            }
+            else {
+              remaining = NewStringList()
+              for (j, 0, ListCount(game.ghost_types) - 1) {
+                list add (remaining, game.ghost_types[j])
+              }
+
+              correct = true
+              foreach (pick, game.terminal_chosen) {
+                found = false
+                foreach (r, remaining) {
+                  if (r = pick) found = true
+                }
+                if (not found) correct = false
+                if (found) {
+                  list remove (remaining, pick)
+                }
+              }
+
+              if (correct and ListCount(remaining) = 0) {
+                msg ("Correct. You identified the ghosts and escaped alive.")
+                finish
+              }
+              else {
+                msg ("Incorrect. The house was haunted by: " + Join(game.ghost_types, ", "))
+                finish
+              }
+            }
+          }
+          else {
+            pick = Replace(result, " (selected)", "")
+
+            already = false
+            foreach (s2, game.terminal_chosen) {
+              if (s2 = pick) already = true
+            }
+
+            if (already) {
+              list remove (game.terminal_chosen, pick)
+            }
+            else {
+              if (ListCount(game.terminal_chosen) < game.GHOST_COUNT) {
+                list add (game.terminal_chosen, pick)
+              }
+              else {
+                msg ("You already selected " + game.GHOST_COUNT + ". Unselect one first or Submit.")
+              }
+            }
+
+            do (this, "ShowGuessMenu")
+          }
+        }
+      ]]></attr>
+
+      <use type="script"><![CDATA[
+        game.terminal_chosen = NewStringList()
+        do (this, "ShowGuessMenu")
+      ]]></use>
+
+      <feature_usegive />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Use</value>
+      </displayverbs>
+    </object>
+
     <object name="item_candle">
       <inherit name="editor_object" />
       <alias>Candle</alias>
@@ -70,17 +324,23 @@
           msg ("You took the candle.")
         }
       ]]></take>
-      <use type="script">
-        if (this.is_lit) {
-          this.is_lit = false
-          msg ("The candle is now out.")
+      <use type="script"><![CDATA[
+        if (this.parent = player) {
+          msg ("Place the candle in a room first.")
         }
         else {
-          this.is_lit = true
-          msg ("The candle is now lit.")
+          if (this.is_lit) {
+            this.is_lit = false
+            msg ("The candle is now out.")
+          }
+          else {
+            this.is_lit = true
+            msg ("The candle is now lit.")
+          }
         }
-      </use>
+      ]]></use>
     </object>
+
     <object name="item_uv_light">
       <inherit name="editor_object" />
       <alias>UV Light</alias>
@@ -93,18 +353,24 @@
           msg ("You took the UV Light.")
         }
       ]]></take>
-      <use type="script">
+      <use type="script"><![CDATA[
         if (item_candle.is_lit) {
           msg ("The candle light is too strong. Blow it out first.")
         }
-        else if (player.parent = game.ghost_room and (game.current_ghost = "Shade" or game.current_ghost = "Shinigami")) {
-          msg ("Glowing fingerprints appear on the wall!")
-        }
         else {
-          msg ("The UV light shows nothing.")
+          found = false
+          for (i, 0, ListCount(game.ghost_rooms) - 1) {
+            if (game.ghost_rooms[i] = player.parent) {
+              t = game.ghost_types[i]
+              if (t = "Shade" or t = "Shinigami") found = true
+            }
+          }
+          if (found) msg ("Glowing fingerprints appear on the wall!")
+          else msg ("The UV light shows nothing.")
         }
-      </use>
+      ]]></use>
     </object>
+
     <object name="item_sls_camera">
       <inherit name="editor_object" />
       <alias>SLS Camera</alias>
@@ -117,18 +383,24 @@
           msg ("You took the SLS Camera.")
         }
       ]]></take>
-      <use type="script">
+      <use type="script"><![CDATA[
         if (item_candle.is_lit) {
           msg ("Night vision doesn't work with a lit candle.")
         }
-        else if (player.parent = game.ghost_room and (game.current_ghost = "Poltergeist" or game.current_ghost = "Banshee" or game.current_ghost = "Lilu")) {
-          msg ("A skeletal silhouette is visible on the display!")
-        }
         else {
-          msg ("The screen is blank.")
+          found = false
+          for (i, 0, ListCount(game.ghost_rooms) - 1) {
+            if (game.ghost_rooms[i] = player.parent) {
+              t = game.ghost_types[i]
+              if (t = "Poltergeist" or t = "Banshee" or t = "Lilu") found = true
+            }
+          }
+          if (found) msg ("A skeletal silhouette is visible on the display!")
+          else msg ("The screen is blank.")
         }
-      </use>
+      ]]></use>
     </object>
+
     <object name="item_temp_sensor">
       <inherit name="editor_object" />
       <alias>Temperature Sensor</alias>
@@ -141,22 +413,42 @@
           msg ("You took the Temperature Sensor.")
         }
       ]]></take>
-      <use type="script">
-        temp = GetRandomInt(20, 25)
-        if (player.parent = game.ghost_room) {
-          if (game.current_ghost = "Zar" or game.current_ghost = "Lilu" or game.current_ghost = "Phong") {
+      <use type="script"><![CDATA[
+        in_room = false
+        freezing = false
+
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          if (game.ghost_rooms[i] = player.parent) {
+            in_room = true
+            gt = game.ghost_types[i]
+            if (gt = "Zar" or gt = "Lilu" or gt = "Phong") {
+              freezing = true
+            }
+          }
+        }
+
+        temp = 0
+
+        if (in_room) {
+          if (freezing) {
             temp = GetRandomInt(-10, -1)
           }
           else {
             temp = GetRandomInt(1, 10)
           }
         }
-        if (game.heater_on) {
+        else {
+          temp = GetRandomInt(20, 25)
+        }
+
+        if (game.heater_effective) {
           temp = temp + 5
         }
+
         msg ("The display reads: " + temp + "°C.")
-      </use>
+      ]]></use>
     </object>
+
     <object name="item_emf_reader">
       <inherit name="editor_object" />
       <alias>EMF Reader</alias>
@@ -169,15 +461,19 @@
           msg ("You took the EMF Reader.")
         }
       ]]></take>
-      <use type="script">
-        if (player.parent = game.ghost_room and (game.current_ghost = "Shade" or game.current_ghost = "Poltergeist" or game.current_ghost = "Banshee" or game.current_ghost = "Phong")) {
-          msg ("EMF Level 5! High activity.")
+      <use type="script"><![CDATA[
+        emf5 = false
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          if (game.ghost_rooms[i] = player.parent) {
+            gt = game.ghost_types[i]
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Banshee" or gt = "Phong") emf5 = true
+          }
         }
-        else {
-          msg ("EMF Level 1.")
-        }
-      </use>
+        if (emf5) msg ("EMF Level 5! High activity.")
+        else msg ("EMF Level 1.")
+      ]]></use>
     </object>
+
     <object name="item_spirit_box">
       <inherit name="editor_object" />
       <alias>Spirit Box</alias>
@@ -190,15 +486,19 @@
           msg ("You took the Spirit Box.")
         }
       ]]></take>
-      <use type="script">
-        if (player.parent = game.ghost_room and (game.current_ghost = "Shade" or game.current_ghost = "Poltergeist" or game.current_ghost = "Phong")) {
-          msg ("A voice whispers: 'Leave...'")
+      <use type="script"><![CDATA[
+        ok = false
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          if (game.ghost_rooms[i] = player.parent) {
+            gt = game.ghost_types[i]
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Phong") ok = true
+          }
         }
-        else {
-          msg ("Static.")
-        }
-      </use>
+        if (ok) msg ("A voice whispers: 'Leave...'")
+        else msg ("Static.")
+      ]]></use>
     </object>
+
     <object name="item_parabolic">
       <inherit name="editor_object" />
       <alias>Parabolic Sensor</alias>
@@ -211,18 +511,23 @@
           msg ("You took the Parabolic Sensor.")
         }
       ]]></take>
-      <use type="script">
-        if (game.current_ghost = "Zar" or game.current_ghost = "Shinigami" or game.current_ghost = "Banshee") {
-          msg ("You hear abnormal sounds from the " + game.ghost_room.alias + ".")
+      <use type="script"><![CDATA[
+        i = GetRandomInt(0, ListCount(game.ghost_rooms) - 1)
+        gt = game.ghost_types[i]
+        r = game.ghost_rooms[i]
+        if (gt = "Zar" or gt = "Shinigami" or gt = "Banshee") {
+          msg ("You hear abnormal sounds from the " + r.alias + ".")
         }
         else {
-          msg ("Static.")
+          msg ("You hear faint movement from the " + r.alias + ".")
         }
-      </use>
+      ]]></use>
     </object>
+
     <object name="item_journal">
       <inherit name="editor_object" />
       <alias>Journal</alias>
+      <attr name="notes" type="string"></attr>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -232,25 +537,46 @@
           msg ("You took the Journal.")
         }
       ]]></take>
-      <use type="script">
-        ghost_list = Split("Shade;Poltergeist;Zar;Shinigami;Banshee;Lilu;Phong", ";")
-        show menu ("Identify the ghost:", ghost_list, true) {
-          if (result = game.current_ghost) {
-            msg ("Correct! It was a " + result + ". You win!")
-            finish
+
+      <use type="script"><![CDATA[
+        menu = Split("Ghost Bios;Write Notes;Read Notes;Close", ";")
+        show menu ("Journal:", menu, true) {
+          if (result = "Ghost Bios") {
+            msg ("Shade: Quiet and watchful. Evidence tends to include UV prints, Spirit responses, and Max EMF.")
+            msg ("Poltergeist: Violent disturbances. Evidence tends to include Max EMF, Spirit responses, and SLS silhouettes.")
+            msg ("Zar: Cold presence with unnatural noises. Evidence tends to include Freezing temps, Abnormal sounds, and Candle blowouts.")
+            msg ("Shinigami: A deathly aura. Evidence tends to include UV prints, Abnormal sounds, and Candle blowouts.")
+            msg ("Banshee: A haunting wail. Evidence tends to include Abnormal sounds, SLS silhouettes, and Max EMF.")
+            msg ("Lilu: A creeping darkness. Evidence tends to include Candle blowouts, SLS silhouettes, and Freezing temps.")
+            msg ("Phong: Dark magic residue. Evidence tends to include Max EMF, Freezing temps, and Spirit responses.")
           }
-          else {
-            msg ("Incorrect! It was a " + game.current_ghost + ". Game Over.")
-            finish
+          else if (result = "Write Notes") {
+            get input ("Write a note:", "") {
+              if (result <> null and result <> "") {
+                if (this.notes = "") this.notes = result else this.notes = this.notes + "^" + result
+                msg ("You write it down.")
+              }
+            }
+          }
+          else if (result = "Read Notes") {
+            if (this.notes = "") {
+              msg ("Your notes are blank.")
+            }
+            else {
+              msg ("Your notes:")
+              msg (Replace(this.notes, "^", Chr(10)))
+            }
           }
         }
-      </use>
+      ]]></use>
     </object>
+
     <object name="player">
       <inherit name="editor_object" />
       <inherit name="editor_player" />
     </object>
   </object>
+
   <object name="room_basement">
     <inherit name="editor_room" />
     <alias>Basement</alias>
@@ -261,16 +587,18 @@
       <inherit name="editor_object" />
       <alias>Heater Switch</alias>
       <feature_use />
-      <use type="script">
+      <use type="script"><![CDATA[
         if (game.heater_on) {
           game.heater_on = false
-          msg ("Heater OFF.")
+          game.heater_timer = 5
+          msg ("Heater OFF. Cooling takes a moment.")
         }
         else {
           game.heater_on = true
-          msg ("Heater ON.")
+          game.heater_timer = 5
+          msg ("Heater ON. Warming takes a moment.")
         }
-      </use>
+      ]]></use>
       <feature_usegive />
       <displayverbs type="stringlist">
         <value>Look at</value>
@@ -278,6 +606,7 @@
       </displayverbs>
     </object>
   </object>
+
   <object name="room_home_office">
     <inherit name="editor_room" />
     <alias>Home Office</alias>
@@ -285,16 +614,19 @@
     <exit alias="west" to="room_storage_room" />
     <exit alias="south" to="room_tv_room" />
   </object>
+
   <object name="room_study">
     <inherit name="editor_room" />
     <alias>Study</alias>
     <exit alias="north" to="room_dining_room" />
     <exit alias="east" to="room_basement" />
   </object>
+
   <object name="room_tv_room">
     <inherit name="editor_room" />
     <alias>TV Room</alias>
     <exit alias="north" to="room_home_office" />
     <exit alias="west" to="room_basement" />
   </object>
+
 </asl>
