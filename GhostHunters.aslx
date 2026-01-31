@@ -26,7 +26,7 @@
       list add (rooms, room_basement)
       list add (rooms, room_tv_room)
 
-      ghost_pool = Split("Banshee;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Phong;Poltergeist;Revenant;Shade;Shinigami;Zar", ";")
+      ghost_pool = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
 
       game.GHOST_COUNT = 3
       game.ghost_rooms = NewObjectList()
@@ -149,7 +149,7 @@
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = candle_room) {
             t = game.ghost_types[i]
-            if (t = "Zar" or t = "Shinigami" or t = "Lilu" or t = "Ghast" or t = "Incubus" or t = "Revenant") {
+            if (t = "Zar" or t = "Shinigami" or t = "Lilu" or t = "Ghast" or t = "Incubus" or t = "Revenant" or t = "Djinn" or t = "Oni" or t = "Tulpa" or t = "Yokai") {
               can_blow = true
             }
           }
@@ -211,7 +211,7 @@
           game.terminal_chosen = NewStringList()
         }
 
-        ghost_names = Split("Banshee;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Phong;Poltergeist;Revenant;Shade;Shinigami;Zar", ";")
+        ghost_names = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
 
         menu = NewStringList()
         for (i, 0, ListCount(ghost_names) - 1) {
@@ -362,7 +362,7 @@
           for (i, 0, ListCount(game.ghost_rooms) - 1) {
             if (game.ghost_rooms[i] = player.parent) {
               t = game.ghost_types[i]
-              if (t = "Shade" or t = "Shinigami" or t = "Eidolon" or t = "Haint" or t = "Kappa") found = true
+              if (t = "Shade" or t = "Shinigami" or t = "Eidolon" or t = "Haint" or t = "Kappa" or t = "Apparition" or t = "Djinn" or t = "Specter" or t = "Yurei") found = true
             }
           }
           if (found) msg ("Glowing fingerprints appear on the wall!")
@@ -392,7 +392,7 @@
           for (i, 0, ListCount(game.ghost_rooms) - 1) {
             if (game.ghost_rooms[i] = player.parent) {
               t = game.ghost_types[i]
-              if (t = "Poltergeist" or t = "Banshee" or t = "Lilu" or t = "Ghast" or t = "Haint" or t = "Lamia") found = true
+              if (t = "Poltergeist" or t = "Banshee" or t = "Lilu" or t = "Ghast" or t = "Haint" or t = "Lamia" or t = "Apparition" or t = "Oni" or t = "Phantom" or t = "Wraith") found = true
             }
           }
           if (found) msg ("A skeletal silhouette is visible on the display!")
@@ -421,7 +421,7 @@
           if (game.ghost_rooms[i] = player.parent) {
             in_room = true
             gt = game.ghost_types[i]
-            if (gt = "Zar" or gt = "Lilu" or gt = "Phong" or gt = "Kappa" or gt = "Lamia" or gt = "Revenant") {
+            if (gt = "Zar" or gt = "Lilu" or gt = "Phong" or gt = "Kappa" or gt = "Lamia" or gt = "Revenant" or gt = "Apparition" or gt = "Draugr" or gt = "Phantom" or gt = "Yokai" or gt = "Yurei") {
               freezing = true
             }
           }
@@ -466,7 +466,7 @@
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = player.parent) {
             gt = game.ghost_types[i]
-            if (gt = "Shade" or gt = "Poltergeist" or gt = "Banshee" or gt = "Phong" or gt = "Ghast" or gt = "Incubus" or gt = "Kappa" or gt = "Moryo") emf5 = true
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Banshee" or gt = "Phong" or gt = "Ghast" or gt = "Incubus" or gt = "Kappa" or gt = "Moryo" or gt = "Draugr" or gt = "Phantom" or gt = "Specter" or gt = "Yokai") emf5 = true
           }
         }
         if (emf5) msg ("EMF Level 5! High activity.")
@@ -491,7 +491,7 @@
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = player.parent) {
             gt = game.ghost_types[i]
-            if (gt = "Shade" or gt = "Poltergeist" or gt = "Phong" or gt = "Eidolon" or gt = "Incubus" or gt = "Lamia" or gt = "Moryo" or gt = "Revenant") ok = true
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Phong" or gt = "Eidolon" or gt = "Incubus" or gt = "Lamia" or gt = "Moryo" or gt = "Revenant" or gt = "Djinn" or gt = "Tulpa" or gt = "Wraith" or gt = "Yurei") ok = true
           }
         }
         if (ok) msg ("A voice whispers: 'Leave...'")
@@ -515,7 +515,7 @@
         i = GetRandomInt(0, ListCount(game.ghost_rooms) - 1)
         gt = game.ghost_types[i]
         r = game.ghost_rooms[i]
-        if (gt = "Zar" or gt = "Shinigami" or gt = "Banshee" or gt = "Eidolon" or gt = "Haint" or gt = "Moryo") {
+        if (gt = "Zar" or gt = "Shinigami" or gt = "Banshee" or gt = "Eidolon" or gt = "Haint" or gt = "Moryo" or gt = "Draugr" or gt = "Oni" or gt = "Specter" or gt = "Tulpa" or gt = "Wraith") {
           msg ("You hear abnormal sounds from the " + r.alias + ".")
         }
         else {
@@ -557,6 +557,16 @@
             msg ("Lamia: A calculated, intelligent spirit. Evidence tends to include SLS silhouettes, Freezing temps, and Spirit responses.")
             msg ("Moryo: A vengeful spirit that distorts signals. Evidence tends to include Abnormal sounds, Max EMF, and Spirit responses.")
             msg ("Revenant: Relentless and persistent. Evidence tends to include Freezing temps, Candle blowouts, and Spirit responses.")
+            msg ("Apparition: A visible manifestation of cold. Evidence tends to include UV prints, SLS silhouettes, and Freezing temps.")
+            msg ("Djinn: A trickster that feeds on flame and whispers. Evidence tends to include UV prints, Candle blowouts, and Spirit responses.")
+            msg ("Draugr: An ancient presence from the ice. Evidence tends to include Abnormal sounds, Freezing temps, and Max EMF.")
+            msg ("Oni: Brutal and physical. Evidence tends to include SLS silhouettes, Abnormal sounds, and Candle blowouts.")
+            msg ("Phantom: A lingering image that disrupts electronics. Evidence tends to include SLS silhouettes, Freezing temps, and Max EMF.")
+            msg ("Specter: A restless watcher. Evidence tends to include UV prints, Abnormal sounds, and Max EMF.")
+            msg ("Tulpa: A thought-form made dangerous. Evidence tends to include Abnormal sounds, Candle blowouts, and Spirit responses.")
+            msg ("Wraith: A stalking spirit that answers in voices. Evidence tends to include SLS silhouettes, Abnormal sounds, and Spirit responses.")
+            msg ("Yokai: A winter curse drawn to heat and power. Evidence tends to include Freezing temps, Candle blowouts, and Max EMF.")
+            msg ("Yurei: A sorrowful spirit that leaves traces of frost. Evidence tends to include UV prints, Freezing temps, and Spirit responses.")
           }
           else if (result = "Write Notes") {
             get input ("Write a note:", "") {
