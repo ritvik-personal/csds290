@@ -7,12 +7,15 @@
     <version>1.9</version>
     <firstpublished>2026</firstpublished>
     <author>Deep Desai, Noah Kiely, Ritvik Sajja, Sanchit Gupta, Vedant Gupta</author>
+    <displaytypeinvocation type="boolean">false</displaytypeinvocation>
+    <autodisplayexits type="boolean">false</autodisplayexits>
     <start type="script">
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
-      game.heater_on = false
+      game.heater_on = true
       game.heater_effective = false
       game.heater_timer = 0
+      game.turns_since_hunt = 0
       rooms = NewObjectList()
       list add (rooms, room_master_bedroom)
       list add (rooms, room_kitchen)
@@ -42,100 +45,204 @@
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
       msg ("There are " + game.GHOST_COUNT + " presences in the house.")
     </start>
-    <turnscript />
+    <turnscript name="global_turnscript">
+      <enabled />
+      <script><![CDATA[
+        game.elapsed_seconds = game.elapsed_seconds + game.SECONDS_PER_TURN
+        // Heater Logic
+        if (game.heater_timer > 0) {
+          game.heater_timer = game.heater_timer - 1
+          if (game.heater_timer = 0) {
+            if (game.heater_on) {
+              game.heater_effective = true; msg ("<br/><i>The heater is now effective.</i>")
+            }
+            else {
+              game.heater_effective = false; msg ("<br/><i>The house is cold again.</i>")
+            }
+          }
+        }
+
+        game.turns_since_hunt = game.turns_since_hunt + 1
+
+        if (not HasAttribute(game, "is_hunting")) {
+          game.is_hunting = false
+        }
+        if (not HasAttribute(player, "is_hiding")) {
+          player.is_hiding = false
+        }
+        
+        // Start Hunt
+        if (not game.is_hunting) {
+          if (game.turns_since_hunt >= 20) {
+            // Base 10% chance + 2% for every turn over 20
+            hunt_chance = 10 + (game.turns_since_hunt - 20)*2
+            
+            if (RandomChance(hunt_chance)) {
+              game.is_hunting = true
+              game.hunt_timer = 6
+              game.turns_since_hunt = 0 // Reset counter so next hunt is delayed
+              msg ("<br/><color=red><b>THE GHOST IS MANIFESTING! YOU HAVE 3 TURNS TO HIDE!</b></color>")
+            }
+          }
+        }
+
+        if (game.is_hunting) {
+          game.hunt_timer = game.hunt_timer - 1
+          
+          // --- STEP 1: CALCULATE DANGER ---
+          player_in_danger = false
+          foreach (room, game.ghost_rooms) {
+            // Check if player is IN the ghost's room (or hiding in it)
+            if (player.parent = room or player.parent.parent = room) {
+              player_in_danger = true
+            }
+            // Check if player is ADJACENT to the ghost's room
+            foreach (ex, AllExits()) {
+              if (ex.parent = room and (player.parent = ex.to or player.parent.parent = ex.to)) {
+                player_in_danger = true
+              }
+            }
+          }
+
+          // --- STEP 2: ACTIVE DANGER (Grace period over) ---
+          if (game.hunt_timer <= 2) {
+            if (player_in_danger) {
+              if (player.is_hiding) {
+                if (item_candle.is_lit and RandomChance(50)) {
+                  msg ("<br/><color=red><b>The light gave you away! The ghost found you!</b></color>")
+                  finish
+                } else {
+                  // Message for hiding successfully in the danger zone
+                  msg ("<br/><color=orange><b>You hear heavy, wet breathing just inches from your hiding spot...</b></color>")
+                }
+              } else {
+                msg ("<br/><color=red><b>The ghost caught you in the open!</b></color>")
+                finish
+              }
+            } else {
+              // Danger is elsewhere in the house
+              msg ("<br/><i>You hear distant thumping and screams from elsewhere in the house.</i>")
+            }
+          } 
+          // --- STEP 3: GRACE PERIOD WARNINGS ---
+          else {
+            if (player_in_danger) {
+              msg ("<br/><color=orange><b>You hear heavy breathing right behind you... HIDE NOW!</b></color>")
+            } else {
+              msg ("<br/><i>You hear distant thumping sounds... the ghost is nearby.</i>")
+            }
+          }
+
+          if (game.hunt_timer <= 0) {
+            game.is_hunting = false
+            msg ("<br/><b>The hunt is over. It is safe to come out.</b>")
+          }
+        }
+
+        // Passive Candle Blowout
+        if (item_candle.is_lit and not game.is_hunting) {
+          foreach (room, game.ghost_rooms) {
+            if (player.parent = room and RandomChance(20)) {
+              item_candle.is_lit = false
+              msg ("<br/><b>A cold breath blows out your candle!</b>")
+            }
+          }
+        }
+      ]]></script>
+    </turnscript>
   </game>
   <object name="room_master_bedroom">
     <inherit name="editor_room" />
     <alias>Master Bedroom</alias>
     <exit alias="east" to="room_kitchen" />
     <exit alias="south" to="room_dining_room" />
-    <object name="bed1">
+    <object name="master_bedroom_closet">
       <inherit name="editor_object" />
-      <alias>bed</alias>
-      <look>A king size bed. The blankets are strewn about haphazardly. You can see dead bedbugs near the pillows.</look>
+      <alias>closet</alias>
       <displayverbs type="stringlist">
         <value>Look at</value>
+        <value>Hide in</value>
       </displayverbs>
-    </object>
-    <object name="closet">
-      <inherit name="editor_object" />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <look>A large wardrobe filled with various old shirts and pants.</look>
+      <attr name="hide_in" type="script">
+        player.is_hiding = true
+        player.parent = this
+        this.displayverbs = Split("Look at;Wait;Exit", ";")
+        msg ("You squeeze into the dark closet and pull the door shut.")
+      </attr>
+      <wait type="script">
+        msg ("You remain silent... time passes.")
+      </wait>
+      <exit alias="exit" to="room_master_bedroom">
+        <message>You cautiously step out from your hiding spot.</message>
+      </exit>
+      <exit alias="wait" to="master_bedroom_closet">
+        <lockmessage type="string"></lockmessage>
+        <message>You remain silent... time passes.</message>
+      </exit>
     </object>
   </object>
   <object name="room_kitchen">
     <inherit name="editor_room" />
     <alias>Kitchen</alias>
-    <description type="string"></description>
+    <object name="pantry">
+      <inherit name="editor_object" />
+      <alias>pantry</alias>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Hide in</value>
+        <value>Wait</value>
+        <value>Exit</value>
+      </displayverbs>
+      <attr name="hide_in" type="script">
+        player.is_hiding = true
+        player.parent = this
+        this.displayverbs = Split("Look at;Wait;Exit", ";")
+        msg ("You squeeze into the dark hiding spot and pull the door shut.")
+      </attr>
+      <wait type="script">
+        msg ("You remain silent, watching the door handle... time passes.")
+      </wait>
+      <exit alias="exit" to="room_kitchen">
+        <message>You cautiously step out from your hiding spot.</message>
+      </exit>
+      <exit alias="wait" to="pantry">
+        <message>You remain silent, watching the door handle... time passes.</message>
+      </exit>
+    </object>
     <exit alias="west" to="room_master_bedroom" />
     <exit alias="east" to="room_guest_bedroom" />
     <exit alias="south" to="room_storage_room" />
-    <object name="sink">
-      <inherit name="editor_object" />
-      <usedefaultprefix />
-      <look>The sink is littered with long forgotten dirty dishes and silverware. It's unlikely that these will ever be cleaned.</look>
-      <scenery type="boolean">false</scenery>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <usestandardverblist type="boolean">false</usestandardverblist>
-    </object>
-    <object name="refrigerator">
-      <inherit name="editor_object" />
-      <inherit name="openable" />
-      <alt type="stringlist">
-        <value>fridge</value>
-      </alt>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Open</value>
-      </displayverbs>
-      <attr name="feature_usegive" type="boolean">false</attr>
-      <inventoryverbs type="stringlist">
-        <value>Look at</value>
-      </inventoryverbs>
-      <useindividualverblist type="boolean">false</useindividualverblist>
-      <look>A rancid smell creeps out from that corner of the room. You can only guess what is in there.</look>
-      <scenery type="boolean">false</scenery>
-      <take type="boolean">false</take>
-      <feature_container />
-      <close type="boolean">false</close>
-      <openscript type="script">
-        msg ("No.")
-      </openscript>
-    </object>
   </object>
   <object name="room_guest_bedroom">
     <inherit name="editor_room" />
     <alias>Guest Bedroom</alias>
-    <exit alias="west" to="room_kitchen">
-      <message type="string"></message>
-    </exit>
+    <object name="closet">
+      <inherit name="editor_object" />
+      <alias>closet</alias>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Hide in</value>
+        <value>Wait</value>
+        <value>Exit</value>
+      </displayverbs>
+      <attr name="hide_in" type="script">
+        player.is_hiding = true
+        player.parent = this
+        this.displayverbs = Split("Look at;Wait;Exit", ";")
+        msg ("You squeeze into the dark hiding spot and pull the door shut.")
+      </attr>
+      <wait type="script">
+        msg ("You remain silent, watching the door handle... time passes.")
+      </wait>
+      <exit alias="exit" to="room_guest_bedroom">
+        <message>You cautiously step out from your hiding spot.</message>
+      </exit>
+      <exit alias="wait" to="closet">
+        <message>You remain silent, watching the door handle... time passes.</message>
+      </exit>
+    </object>
+    <exit alias="west" to="room_kitchen" />
     <exit alias="south" to="room_home_office" />
-    <object name="bed">
-      <inherit name="editor_object" />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <look>An old, particularly dusty bed. The covers are neatly made. Someone would need to have a short frame to lie down properly.</look>
-    </object>
-    <object name="box">
-      <inherit name="editor_object" />
-      <inherit name="container_open" />
-      <look>A small , dusty, plastic {object:box}. It is shaped like a treasure chest.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Open</value>
-      </displayverbs>
-      <visible />
-      <feature_container />
-      <isopen type="boolean">false</isopen>
-      <onopen type="script">
-        OutputTextNoBr (" It is filled with old children's toys.")
-      </onopen>
-    </object>
   </object>
   <object name="room_dining_room">
     <inherit name="editor_room" />
@@ -143,41 +250,11 @@
     <exit alias="north" to="room_master_bedroom" />
     <exit alias="east" to="room_storage_room" />
     <exit alias="south" to="room_study" />
-    <object name="table">
-      <inherit name="editor_object" />
-      <alias>dining room table</alias>
-      <visible />
-      <look>A small, rectangular table with three {object:chairs} at its sides. A {object:pot} sits in its center.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-    </object>
-    <object name="chairs">
-      <inherit name="editor_object" />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <look>There are three chairs, each old and wooden. One of them lies on its side and is missing a leg.</look>
-      <scenery />
-    </object>
-    <object name="pot">
-      <inherit name="editor_object" />
-      <alias>flower pot</alias>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <look>A porcelain flower pot. The flowers it holds are long dead.</look>
-      <scenery />
-    </object>
   </object>
   <object name="room_storage_room">
     <inherit name="editor_room" />
     <alias>Storage Room</alias>
-    <description>Although it is a bit makeshift, this place is acting as your base of operations for the time being. Your tools litter the tables around you. The ghost database terminal emanates a dull hum.</description>
-    <usedefaultprefix />
-    <exit alias="north" to="room_kitchen">
-      <message type="string"></message>
-    </exit>
+    <exit alias="north" to="room_kitchen" />
     <exit alias="south" to="room_basement" />
     <exit alias="west" to="room_dining_room" />
     <exit alias="east" to="room_home_office" />
@@ -190,7 +267,6 @@
         <value>Look at</value>
         <value>Use</value>
       </displayverbs>
-      <look>The ghost database terminal. With enough evidence, I can send a report about what kind of ghosts are inhabiting this place.</look>
       <ShowGuessMenu type="script"><![CDATA[
         if (not HasAttribute(game, "terminal_chosen")) {
           game.terminal_chosen = NewStringList()
@@ -291,7 +367,11 @@
       <inherit name="editor_object" />
       <alias>Candle</alias>
       <attr name="is_lit" type="boolean">false</attr>
-      <look>A candle. If placed room, it could draw a ghost's attention.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Take</value>
+        <value>Use</value>
+      </displayverbs>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -302,25 +382,19 @@
         }
       ]]></take>
       <use type="script">
-        if (this.parent = player) {
-          msg ("Place the candle in a room first.")
+        if (this.is_lit) {
+          this.is_lit = false
+          msg ("The candle is now out.")
         }
         else {
-          if (this.is_lit) {
-            this.is_lit = false
-            msg ("The candle is now out.")
-          }
-          else {
-            this.is_lit = true
-            msg ("The candle is now lit.")
-          }
+          this.is_lit = true
+          msg ("The candle is now lit.")
         }
       </use>
     </object>
     <object name="item_uv_light">
       <inherit name="editor_object" />
       <alias>UV Light</alias>
-      <look>A UV flashlight. It could pick up traces of certain ghosts.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -357,7 +431,6 @@
     <object name="item_sls_camera">
       <inherit name="editor_object" />
       <alias>SLS Camera</alias>
-      <look>A video camera with a side panel to view live footage. Looks like it has a night-vision lens!</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -394,7 +467,6 @@
     <object name="item_temp_sensor">
       <inherit name="editor_object" />
       <alias>Temperature Sensor</alias>
-      <look>A thermometer. This can be used to get a temperature reading of the room you are in.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -437,7 +509,6 @@
     <object name="item_emf_reader">
       <inherit name="editor_object" />
       <alias>EMF Reader</alias>
-      <look>An EMF reader. It can be used to read the EMF levels of a room. A reading of level 1 means nothing is out of the ordinary.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -468,7 +539,6 @@
     <object name="item_spirit_box">
       <inherit name="editor_object" />
       <alias>Spirit Box</alias>
-      <look>A spirit box. Maybe you could communicate with whatever is in here?</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -499,7 +569,6 @@
     <object name="item_parabolic">
       <inherit name="editor_object" />
       <alias>Parabolic Sensor</alias>
-      <look>A parabolic microphone. Listening to it could let you hear movement or identify abnormal sounds.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -510,14 +579,25 @@
         }
       ]]></take>
       <use type="script">
-        i = GetRandomInt(0, ListCount(game.ghost_rooms) - 1)
-        gt = game.ghost_types[i]
-        r = game.ghost_rooms[i]
-        if (gt = "Zar" or gt = "Shinigami" or gt = "Banshee" or gt = "Eidolon" or gt = "Haint" or gt = "Moryo" or gt = "Draugr" or gt = "Oni" or gt = "Specter" or gt = "Tulpa" or gt = "Wraith") {
-          msg ("You hear abnormal sounds from the " + r.alias + ".")
+        found_ghost = false
+        ghost_type = ""
+        // Loop through ghost rooms to see if one matches the current room
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+          if (game.ghost_rooms[i] = player.parent) {
+            found_ghost = true
+            ghost_type = game.ghost_types[i]
+          }
+        }
+        if (found_ghost) {
+          if (ghost_type = "Zar" or ghost_type = "Shinigami" or ghost_type = "Banshee" or ghost_type = "Eidolon" or ghost_type = "Haint" or ghost_type = "Moryo" or ghost_type = "Draugr" or ghost_type = "Oni" or ghost_type = "Specter" or ghost_type = "Tulpa" or ghost_type = "Wraith") {
+            msg ("The parabolic sensor picks up heavy abnormal sounds right here!")
+          }
+          else {
+            msg ("The sensor detects faint movement within this room.")
+          }
         }
         else {
-          msg ("You hear faint movement from the " + r.alias + ".")
+          msg ("The sensor display remains flat. No sounds detected in this room.")
         }
       </use>
     </object>
@@ -525,7 +605,6 @@
       <inherit name="editor_object" />
       <alias>Journal</alias>
       <notes type="string"></notes>
-      <look>Your trusty journal. It contains information about every ghost you know. With this, it will be a lot easier to keep track of any evidence you gather.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -539,31 +618,31 @@
         menu = Split("Ghost Bios;Write Notes;Read Notes;Close", ";")
         show menu ("Journal:", menu, true) {
           if (result = "Ghost Bios") {
-            msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include UV prints, Spirit responses, and Max EMF.")
-            msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include Max EMF, Spirit responses, and SLS silhouettes.")
-            msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include Freezing temps, Abnormal sounds, and Candle blowouts.")
-            msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include UV prints, Abnormal sounds, and Candle blowouts.")
-            msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include Abnormal sounds, SLS silhouettes, and Max EMF.")
-            msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include Candle blowouts, SLS silhouettes, and Freezing temps.")
-            msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include Max EMF, Freezing temps, and Spirit responses.")
-            msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include UV prints, Abnormal sounds, and Spirit responses.")
-            msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include SLS silhouettes, Candle blowouts, and Max EMF.")
-            msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include UV prints, SLS silhouettes, and Abnormal sounds.")
-            msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include Candle blowouts, Max EMF, and Spirit responses.")
-            msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include UV prints, Freezing temps, and Max EMF.")
-            msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include SLS silhouettes, Freezing temps, and Spirit responses.")
-            msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include Abnormal sounds, Max EMF, and Spirit responses.")
-            msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include Freezing temps, Candle blowouts, and Spirit responses.")
-            msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include UV prints, SLS silhouettes, and Freezing temps.")
-            msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include UV prints, Candle blowouts, and Spirit responses.")
-            msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include Abnormal sounds, Freezing temps, and Max EMF.")
-            msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include SLS silhouettes, Abnormal sounds, and Candle blowouts.")
-            msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include SLS silhouettes, Freezing temps, and Max EMF.")
-            msg ("<b>Specter</b>: A restless watcher. Evidence tends to include UV prints, Abnormal sounds, and Max EMF.")
-            msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include Abnormal sounds, Candle blowouts, and Spirit responses.")
-            msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include SLS silhouettes, Abnormal sounds, and Spirit responses.")
-            msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include Freezing temps, Candle blowouts, and Max EMF.")
-            msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include UV prints, Freezing temps, and Spirit responses.")
+            msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include <b>UV prints, Spirit box responses, and Max EMF.</b><br/>")
+            msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include <b>Max EMF, Spirit box responses, and SLS silhouettes.</b><br/>")
+            msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include <b>Freezing temps, Abnormal sounds, and Candle blowouts.</b><br/>")
+            msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include <b>UV prints, Abnormal sounds, and Candle blowouts.</b><br/>")
+            msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include <b>Abnormal sounds, SLS silhouettes, and Max EMF.</b><br/>")
+            msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include <b>Candle blowouts, SLS silhouettes, and Freezing temps.</b><br/>")
+            msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include <b>Max EMF, Freezing temps, and Spirit box responses.</b><br/>")
+            msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include <b>UV prints, Abnormal sounds, and Spirit box responses.</b><br/>")
+            msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include <b>SLS silhouettes, Candle blowouts, and Max EMF.</b><br/>")
+            msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include <b>UV prints, SLS silhouettes, and Abnormal sounds.</b><br/>")
+            msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include <b>Candle blowouts, Max EMF, and Spirit box responses.</b><br/>")
+            msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include <b>UV prints, Freezing temps, and Max EMF.</b><br/>")
+            msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Spirit box responses.</b><br/>")
+            msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include <b>Abnormal sounds, Max EMF, and Spirit box responses.</b><br/>")
+            msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include <b>Freezing temps, Candle blowouts, and Spirit box responses.</b><br/>")
+            msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include <b>UV prints, SLS silhouettes, and Freezing temps.</b><br/>")
+            msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include <b>UV prints, Candle blowouts, and Spirit box responses.</b><br/>")
+            msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include <b>Abnormal sounds, Freezing temps, and Max EMF.</b><br/>")
+            msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Candle blowouts.</b><br/>")
+            msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Max EMF.</b><br/>")
+            msg ("<b>Specter</b>: A restless watcher. Evidence tends to include <b>UV prints, Abnormal sounds, and Max EMF.</b><br/>")
+            msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include <b>Abnormal sounds, Candle blowouts, and Spirit box responses.</b><br/>")
+            msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Spirit box responses.</b><br/>")
+            msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include <b>Freezing temps, Candle blowouts, and Max EMF.</b><br/>")
+            msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include <b>UV prints, Freezing temps, and Spirit box responses.</b><br/>")
           }
           else if (result = "Write Notes") {
             obj = this
@@ -631,123 +710,46 @@
     <exit alias="north" to="room_guest_bedroom" />
     <exit alias="west" to="room_storage_room" />
     <exit alias="south" to="room_tv_room" />
-    <object name="computer">
-      <inherit name="editor_object" />
-      <look>An old computer. Even though it is plugged in, it seems to be nonfunctional.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-    </object>
   </object>
   <object name="room_study">
     <inherit name="editor_room" />
     <alias>Study</alias>
     <exit alias="north" to="room_dining_room" />
     <exit alias="east" to="room_basement" />
-    <object name="desk">
-      <inherit name="editor_object" />
-      <inherit name="openable" />
-      <look>The wood of the desk is rotting.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Open</value>
-      </displayverbs>
-      <feature_container />
-      <close type="boolean">false</close>
-      <openscript type="script">
-        msg ("You open a drawer of the desk. There is a {object:picture} here.")
-      </openscript>
-    </object>
-    <object name="picture">
-      <inherit name="editor_object" />
-      <scenery />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-      <look type="script">
-        if (picture.dusty = true) {
-          msg ("It's too dusty to see anything.")
-        }
-        else {
-          msg ("The picture is of a man, woman, and child posing and smiling.")
-        }
-      </look>
-      <dustoff type="script">
-        if (this.dusty = true) {
-          msg ("You dust off the picture.")
-          this.dusty = false
-        }
-        else {
-          msg ("You have already dusted off the picture.")
-        }
-      </dustoff>
-      <dusty />
-      <usestandardverblist type="boolean">false</usestandardverblist>
-      <useindividualverblist type="boolean">false</useindividualverblist>
-    </object>
   </object>
   <object name="room_tv_room">
     <inherit name="editor_room" />
     <alias>TV Room</alias>
     <exit alias="north" to="room_home_office" />
     <exit alias="west" to="room_basement" />
-    <object name="couch">
-      <inherit name="editor_object" />
-      <look type="script">
-        if (this.examined = 2) {
-          msg ("An old dusty couch. There is a {object:remote} here.")
-        }
-        else if (this.examined = 1) {
-          msg ("An old dusty couch... oh! There's something between the cushions. You find a {object:remote}.")
-          this.examined = 2
-        }
-        else {
-          msg ("An old dusty couch.")
-          this.examined = 1
-        }
-      </look>
-      <examined type="int">0</examined>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-    </object>
-    <object name="tv">
-      <inherit name="editor_object" />
-      <alias>TV</alias>
-      <scenery type="boolean">false</scenery>
-      <look>An old, box TV. Its power switch seems to have been removed, somehow.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-      </displayverbs>
-    </object>
-    <object name="remote">
-      <inherit name="editor_object" />
-      <look>A TV remote.</look>
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Use</value>
-      </displayverbs>
-      <feature_usegive />
-      <use type="script">
-        msg ("You try to turn on the TV... oh. It doesn't work.")
-      </use>
-      <scenery />
-      <visible />
-    </object>
   </object>
   <verb>
-    <property>dust</property>
-    <pattern>dust</pattern>
-    <defaultexpression>WriteVerb(game.pov, "can't") + " dust " + object.article + "."</defaultexpression>
+    <property>hide_in</property>
+    <pattern>hide in; enter; hide; climb into</pattern>
+    <description>You hide away.</description>
+  </verb>
+  <command name="exit_hiding">
+    <pattern>leave; exit; get out</pattern>
+    <script>
+      if (player.is_hiding) {
+        player.parent.displayverbs = Split("Look at;Hide in", ";")
+        player.is_hiding = false
+        player.parent = player.parent.parent
+        msg ("You cautiously step out from your hiding spot.")
+      }
+      else {
+        msg ("You aren't hiding right now.")
+      }
+    </script>
+  </command>
+  <verb>
+    <property>wait</property>
+    <pattern>wait; z</pattern>
+    <description>You wait patiently.</description>
   </verb>
   <verb>
-    <property>dust_off</property>
-    <pattern>dust_off</pattern>
-    <defaultexpression>WriteVerb(game.pov, "can't") + " dust_off " + object.article + "."</defaultexpression>
-  </verb>
-  <verb>
-    <property>dustoff</property>
-    <pattern>dust off</pattern>
-    <defaultexpression>WriteVerb(game.pov, "can't") + " dust off " + object.article + "."</defaultexpression>
+    <property>exit</property>
+    <pattern>exit; leave; get out</pattern>
+    <description>You exit your hiding spot.</description>
   </verb>
 </asl>
