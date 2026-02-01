@@ -18,28 +18,21 @@
     <menuforeground>Red</menuforeground>
     <menuhoverbackground>Black</menuhoverbackground>
     <menuhoverforeground>Blue</menuhoverforeground>
+    <defaultlinkforeground>Red</defaultlinkforeground>
     <start type="script"><![CDATA[
-      
       // 1. Force the background of all panes
       JS.eval ("$('.ui-widget-content, .ui-state-default, .ui-widget-header').css('background', '#111111');")
-
       // 2. Fix the Grey Header & Sub-text (Targets the accordion buttons specifically)
       JS.eval ("$('.ui-state-default, .ui-accordion-header, .ui-accordion-content').css('color', 'red');")
       JS.eval ("$('.ui-state-default').css('border', '1px solid #333');")
-
       // 3. Force Inventory/Places labels and every list item to Red
       JS.eval ("$('#inventoryLabel, #statusLabel, #compassLabel, #placesObjectsLabel, .elementlist, .customstyle').css('color', 'red');")
-
       // 4. Update Hyperlinks to a vibrant Red
       JS.eval ("$('#gamePanes a').css('color', 'red');")
-
       // 5. Command Bar styling
       JS.eval ("$('#txtCommand').css({'background-color':'#000000', 'color':'red', 'border':'1px solid #444'});")
-
       // 6. Red Ghostly Glow for main output
       JS.eval ("$('head').append('<style>#divOutput { text-shadow: 0 0 5px rgba(255,0,0,0.7); }</style>');")
-            
-      
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
       game.heater_on = true
@@ -75,7 +68,6 @@
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
       msg ("There are " + game.GHOST_COUNT + " presences in the house.")
     ]]></start>
-    <defaultlinkforeground>Red</defaultlinkforeground>
     <turnscript name="global_turnscript">
       <enabled />
       <script><![CDATA[
@@ -214,6 +206,7 @@
       <wait type="script">
         msg ("You remain silent... time passes.")
       </wait>
+      <look>A walk-in closet full of old clothing. The air inside is stale and musty. You could easily hide in here, if you needed to.</look>
       <exit alias="exit" to="room_master_bedroom">
         <runscript />
         <script type="script">
@@ -249,6 +242,7 @@
       <wait type="script">
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
+      <look>A large pantry, which has largely been emptied out, save for a few canned products. If you needed to, you could fit your entire body in here.</look>
       <exit alias="exit" to="room_kitchen">
         <runscript />
         <message>You cautiously step out from your hiding spot.</message>
@@ -287,6 +281,7 @@
       <wait type="script">
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
+      <look>A large closet, full of old children's clothing. While it would be a bit cramped, you could hide in here if you needed to.</look>
       <exit alias="exit" to="room_guest_bedroom">
         <runscript />
         <message>You cautiously step out from your hiding spot.</message>
@@ -422,6 +417,7 @@
         game.terminal_chosen = NewStringList()
         do (this, "ShowGuessMenu")
       </use>
+      <look>Your {object:ghost_database_terminal}. Once you gather enough evidence, you can submit your findings and leave this place.</look>
     </object>
     <object name="item_candle">
       <inherit name="editor_object" />
@@ -451,6 +447,14 @@
           msg ("The candle is now lit.")
         }
       </use>
+      <look type="script">
+        if (this.is_lit) {
+          msg ("A warm glow emanates from your lit candle. Certain ghosts may be inclined to blow it out, but its light may disrupt certain readings. It can be placed in a room and retain its effect. You may not want to hold onto it if you want to remain unseen...")
+        }
+        else {
+          msg ("An unlit candle. Should you light it, some ghosts may be inclined to blow it out.")
+        }
+      </look>
     </object>
     <object name="item_uv_light">
       <inherit name="editor_object" />
@@ -487,6 +491,7 @@
           }
         }
       </use>
+      <look>A UV light. Certain ghosts will leave behind fingerprints or footprints. This reading may be disrupted if other light sources are in the room.</look>
     </object>
     <object name="item_sls_camera">
       <inherit name="editor_object" />
@@ -523,6 +528,7 @@
           }
         }
       </use>
+      <look>An SLS camera with night vision capabilities. It can catch the silhouettes of certain ghosts on tape. Due to it using night vision technology, it may be disrupted by light.</look>
     </object>
     <object name="item_temp_sensor">
       <inherit name="editor_object" />
@@ -565,6 +571,7 @@
         }
         msg ("The display reads: " + temp + "°C.")
       </use>
+      <look>A thermometer. It can be used to take a temperature reading of a room. If a room is particularly cold, this may indicate a supernatural presence...</look>
     </object>
     <object name="item_emf_reader">
       <inherit name="editor_object" />
@@ -595,6 +602,7 @@
           msg ("EMF Level 1.")
         }
       </use>
+      <look>An EMF reader. It can be used to take an EMF reading of a room. Certain ghosts' presence will cause a high EMF reading.</look>
     </object>
     <object name="item_spirit_box">
       <inherit name="editor_object" />
@@ -625,6 +633,7 @@
           msg ("Static.")
         }
       </use>
+      <look>A spirit box. With this, you can communicate with certain spirits.</look>
     </object>
     <object name="item_parabolic">
       <inherit name="editor_object" />
@@ -660,6 +669,7 @@
           msg ("The sensor display remains flat. No sounds detected in this room.")
         }
       </use>
+      <look>A parabolic microphone. Can be used to take a sound reading from a room. May pick up traces of faint movement, or abnormal sounds from certain ghosts.</look>
     </object>
     <object name="item_journal">
       <inherit name="editor_object" />
@@ -729,6 +739,7 @@
           }
         }
       ]]></use>
+      <look>Your trusty journal. Contains a catalogue of every kind of ghost you know. You can also use it to take notes.</look>
     </object>
     <object name="player">
       <inherit name="editor_object" />
@@ -762,6 +773,14 @@
           msg ("Heater ON. Warming takes a moment.")
         }
       </use>
+      <look type="script">
+        if (game.heater_on) {
+          msg ("The heater is currently on. The rooms throughout the house will be warmer than they normally are.")
+        }
+        else {
+          msg ("The heater is currently off.")
+        }
+      </look>
     </object>
   </object>
   <object name="room_home_office">
