@@ -1,21 +1,18 @@
+<!--Saved by Quest 5.9.9166.36226-->
 <asl version="580">
   <include ref="English.aslx" />
   <include ref="Core.aslx" />
-
   <game name="GhostHunters">
     <gameid>ee9ebba1-1b57-4393-a469-69c604228329</gameid>
     <version>1.9</version>
     <firstpublished>2026</firstpublished>
     <author>Deep Desai, Noah Kiely, Ritvik Sajja, Sanchit Gupta, Vedant Gupta</author>
-
-    <start type="script"><![CDATA[
+    <start type="script">
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
-
       game.heater_on = false
       game.heater_effective = false
       game.heater_timer = 0
-
       rooms = NewObjectList()
       list add (rooms, room_master_bedroom)
       list add (rooms, room_kitchen)
@@ -26,201 +23,187 @@
       list add (rooms, room_study)
       list add (rooms, room_basement)
       list add (rooms, room_tv_room)
-
       ghost_pool = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
-
       game.GHOST_COUNT = 3
       game.ghost_rooms = NewObjectList()
       game.ghost_types = NewStringList()
-
       available_rooms = NewObjectList()
       foreach (r, rooms) {
         list add (available_rooms, r)
       }
-
       for (i, 1, game.GHOST_COUNT) {
         g = PickOneString(ghost_pool)
         list add (game.ghost_types, g)
         list remove (ghost_pool, g)
-
         rr = PickOneObject(available_rooms)
         list add (game.ghost_rooms, rr)
         list remove (available_rooms, rr)
       }
-
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
       msg ("There are " + game.GHOST_COUNT + " presences in the house.")
-    ]]></start>
-
-    <turnscript type="script"><![CDATA[
-      game.elapsed_seconds = game.elapsed_seconds + game.SECONDS_PER_TURN
-
-      if (game.heater_timer > 0) {
-        game.heater_timer = game.heater_timer - game.SECONDS_PER_TURN
-        if (game.heater_timer <= 0) {
-          game.heater_effective = game.heater_on
-          if (game.heater_effective) {
-            msg ("You hear vents kick on. The house warms slightly.")
-          }
-          else {
-            msg ("The vents fall silent. The house begins to cool.")
-          }
-        }
-      }
-
-      if (game.elapsed_seconds mod 600 = 0) {
-        rooms2 = NewObjectList()
-        list add (rooms2, room_master_bedroom)
-        list add (rooms2, room_kitchen)
-        list add (rooms2, room_storage_room)
-        list add (rooms2, room_guest_bedroom)
-        list add (rooms2, room_dining_room)
-        list add (rooms2, room_home_office)
-        list add (rooms2, room_study)
-        list add (rooms2, room_basement)
-        list add (rooms2, room_tv_room)
-
-        new_occupied = NewObjectList()
-
-        for (i, 0, ListCount(game.ghost_rooms) - 1) {
-          current = game.ghost_rooms[i]
-          exits = NewObjectList()
-          foreach (e, current.exit) {
-            list add (exits, e.to)
-          }
-
-          if (ListCount(exits) > 0) {
-            next = PickOneObject(exits)
-          }
-          else {
-            next = PickOneObject(rooms2)
-          }
-
-          tries = 0
-          occupied = false
-          foreach (o, new_occupied) {
-            if (o = next) occupied = true
-          }
-
-          while (occupied and tries < 30) {
-            if (ListCount(exits) > 0) {
-              next = PickOneObject(exits)
-            }
-            else {
-              next = PickOneObject(rooms2)
-            }
-
-            occupied = false
-            foreach (o2, new_occupied) {
-              if (o2 = next) occupied = true
-            }
-
-            tries = tries + 1
-          }
-
-          if (not occupied) {
-            list add (new_occupied, next)
-            game.ghost_rooms[i] = next
-          }
-          else {
-            fallback = PickOneObject(rooms2)
-            tries2 = 0
-            occupied2 = false
-            foreach (x, new_occupied) {
-              if (x = fallback) occupied2 = true
-            }
-
-            while (occupied2 and tries2 < 30) {
-              fallback = PickOneObject(rooms2)
-              occupied2 = false
-              foreach (x2, new_occupied) {
-                if (x2 = fallback) occupied2 = true
-              }
-              tries2 = tries2 + 1
-            }
-
-            list add (new_occupied, fallback)
-            game.ghost_rooms[i] = fallback
-          }
-        }
-      }
-
-      if (item_candle.parent <> null and item_candle.parent <> player and item_candle.is_lit) {
-        candle_room = item_candle.parent
-        can_blow = false
-        for (i, 0, ListCount(game.ghost_rooms) - 1) {
-          if (game.ghost_rooms[i] = candle_room) {
-            t = game.ghost_types[i]
-            if (t = "Zar" or t = "Shinigami" or t = "Lilu" or t = "Ghast" or t = "Incubus" or t = "Revenant" or t = "Djinn" or t = "Oni" or t = "Tulpa" or t = "Yokai") {
-              can_blow = true
-            }
-          }
-        }
-        if (can_blow and GetRandomInt(1, 100) <= 50) {
-          item_candle.is_lit = false
-          msg ("The candle sputters... and dies.")
-        }
-      }
-    ]]></turnscript>
-
+    </start>
+    <turnscript />
   </game>
-
   <object name="room_master_bedroom">
     <inherit name="editor_room" />
     <alias>Master Bedroom</alias>
     <exit alias="east" to="room_kitchen" />
     <exit alias="south" to="room_dining_room" />
+    <object name="bed1">
+      <inherit name="editor_object" />
+      <alias>bed</alias>
+      <look>A king size bed. The blankets are strewn about haphazardly. You can see dead bedbugs near the pillows.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+    </object>
+    <object name="closet">
+      <inherit name="editor_object" />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <look>A large wardrobe filled with various old shirts and pants.</look>
+    </object>
   </object>
-
   <object name="room_kitchen">
     <inherit name="editor_room" />
     <alias>Kitchen</alias>
+    <description type="string"></description>
     <exit alias="west" to="room_master_bedroom" />
     <exit alias="east" to="room_guest_bedroom" />
     <exit alias="south" to="room_storage_room" />
+    <object name="sink">
+      <inherit name="editor_object" />
+      <usedefaultprefix />
+      <look>The sink is littered with long forgotten dirty dishes and silverware. It's unlikely that these will ever be cleaned.</look>
+      <scenery type="boolean">false</scenery>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <usestandardverblist type="boolean">false</usestandardverblist>
+    </object>
+    <object name="refrigerator">
+      <inherit name="editor_object" />
+      <inherit name="openable" />
+      <alt type="stringlist">
+        <value>fridge</value>
+      </alt>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Open</value>
+      </displayverbs>
+      <attr name="feature_usegive" type="boolean">false</attr>
+      <inventoryverbs type="stringlist">
+        <value>Look at</value>
+      </inventoryverbs>
+      <useindividualverblist type="boolean">false</useindividualverblist>
+      <look>A rancid smell creeps out from that corner of the room. You can only guess what is in there.</look>
+      <scenery type="boolean">false</scenery>
+      <take type="boolean">false</take>
+      <feature_container />
+      <close type="boolean">false</close>
+      <openscript type="script">
+        msg ("No.")
+      </openscript>
+    </object>
   </object>
-
   <object name="room_guest_bedroom">
     <inherit name="editor_room" />
     <alias>Guest Bedroom</alias>
-    <exit alias="west" to="room_kitchen" />
+    <exit alias="west" to="room_kitchen">
+      <message type="string"></message>
+    </exit>
     <exit alias="south" to="room_home_office" />
+    <object name="bed">
+      <inherit name="editor_object" />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <look>An old, particularly dusty bed. The covers are neatly made. Someone would need to have a short frame to lie down properly.</look>
+    </object>
+    <object name="box">
+      <inherit name="editor_object" />
+      <inherit name="container_open" />
+      <look>A small , dusty, plastic {object:box}. It is shaped like a treasure chest.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Open</value>
+      </displayverbs>
+      <visible />
+      <feature_container />
+      <isopen type="boolean">false</isopen>
+      <onopen type="script">
+        OutputTextNoBr (" It is filled with old children's toys.")
+      </onopen>
+    </object>
   </object>
-
   <object name="room_dining_room">
     <inherit name="editor_room" />
     <alias>Dining Room</alias>
     <exit alias="north" to="room_master_bedroom" />
     <exit alias="east" to="room_storage_room" />
     <exit alias="south" to="room_study" />
+    <object name="table">
+      <inherit name="editor_object" />
+      <alias>dining room table</alias>
+      <visible />
+      <look>A small, rectangular table with three {object:chairs} at its sides. A {object:pot} sits in its center.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+    </object>
+    <object name="chairs">
+      <inherit name="editor_object" />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <look>There are three chairs, each old and wooden. One of them lies on its side and is missing a leg.</look>
+      <scenery />
+    </object>
+    <object name="pot">
+      <inherit name="editor_object" />
+      <alias>flower pot</alias>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <look>A porcelain flower pot. The flowers it holds are long dead.</look>
+      <scenery />
+    </object>
   </object>
-
   <object name="room_storage_room">
     <inherit name="editor_room" />
     <alias>Storage Room</alias>
-    <exit alias="north" to="room_kitchen" />
+    <description>Although it is a bit makeshift, this place is acting as your base of operations for the time being. Your tools litter the tables around you. The ghost database terminal emanates a dull hum.</description>
+    <usedefaultprefix />
+    <exit alias="north" to="room_kitchen">
+      <message type="string"></message>
+    </exit>
     <exit alias="south" to="room_basement" />
     <exit alias="west" to="room_dining_room" />
     <exit alias="east" to="room_home_office" />
-
     <object name="ghost_database_terminal">
       <inherit name="editor_object" />
       <alias>Ghost Database Terminal</alias>
       <feature_use />
-
-      <attr name="ShowGuessMenu" type="script"><![CDATA[
+      <feature_usegive />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Use</value>
+      </displayverbs>
+      <look>The ghost database terminal. With enough evidence, I can send a report about what kind of ghosts are inhabiting this place.</look>
+      <ShowGuessMenu type="script"><![CDATA[
         if (not HasAttribute(game, "terminal_chosen")) {
           game.terminal_chosen = NewStringList()
         }
-
         ghost_names = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
-
         menu = NewStringList()
         for (i, 0, ListCount(ghost_names) - 1) {
           n = ghost_names[i]
           selected = false
           foreach (s, game.terminal_chosen) {
-            if (s = n) selected = true
+            if (s = n) {
+              selected = true
+            }
           }
           if (selected) {
             list add (menu, n + " (selected)")
@@ -229,11 +212,9 @@
             list add (menu, n)
           }
         }
-
         list add (menu, "Submit")
         list add (menu, "Reset")
         list add (menu, "Cancel")
-
         prompt = "Select " + game.GHOST_COUNT + " ghosts (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + "). Toggle names, then Submit."
         show menu (prompt, menu, true) {
           if (result = "Cancel") {
@@ -253,19 +234,21 @@
               for (j, 0, ListCount(game.ghost_types) - 1) {
                 list add (remaining, game.ghost_types[j])
               }
-
               correct = true
               foreach (pick, game.terminal_chosen) {
                 found = false
                 foreach (r, remaining) {
-                  if (r = pick) found = true
+                  if (r = pick) {
+                    found = true
+                  }
                 }
-                if (not found) correct = false
+                if (not found) {
+                  correct = false
+                }
                 if (found) {
                   list remove (remaining, pick)
                 }
               }
-
               if (correct and ListCount(remaining) = 0) {
                 msg ("Correct. You identified the ghosts and escaped alive.")
                 finish
@@ -278,12 +261,12 @@
           }
           else {
             pick = Replace(result, " (selected)", "")
-
             already = false
             foreach (s2, game.terminal_chosen) {
-              if (s2 = pick) already = true
+              if (s2 = pick) {
+                already = true
+              }
             }
-
             if (already) {
               list remove (game.terminal_chosen, pick)
             }
@@ -295,28 +278,20 @@
                 msg ("You already selected " + game.GHOST_COUNT + ". Unselect one first or Submit.")
               }
             }
-
             do (this, "ShowGuessMenu")
           }
         }
-      ]]></attr>
-
-      <use type="script"><![CDATA[
+      ]]></ShowGuessMenu>
+      <use type="script">
         game.terminal_chosen = NewStringList()
         do (this, "ShowGuessMenu")
-      ]]></use>
-
-      <feature_usegive />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Use</value>
-      </displayverbs>
+      </use>
     </object>
-
     <object name="item_candle">
       <inherit name="editor_object" />
       <alias>Candle</alias>
       <attr name="is_lit" type="boolean">false</attr>
+      <look>A candle. If placed room, it could draw a ghost's attention.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -326,7 +301,7 @@
           msg ("You took the candle.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
+      <use type="script">
         if (this.parent = player) {
           msg ("Place the candle in a room first.")
         }
@@ -340,12 +315,12 @@
             msg ("The candle is now lit.")
           }
         }
-      ]]></use>
+      </use>
     </object>
-
     <object name="item_uv_light">
       <inherit name="editor_object" />
       <alias>UV Light</alias>
+      <look>A UV flashlight. It could pick up traces of certain ghosts.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -355,30 +330,34 @@
           msg ("You took the UV Light.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
-      candle_lighting_here = (item_candle.is_lit and item_candle.parent = player.parent)
-      
-      if (candle_lighting_here) {
-        msg ("The candle light is too strong. Blow it out first.")
+      <use type="script">
+        candle_lighting_here = (item_candle.is_lit and item_candle.parent = player.parent)
+        if (candle_lighting_here) {
+          msg ("The candle light is too strong. Blow it out first.")
         }
-      else {
-        found = false
-        for (i, 0, ListCount(game.ghost_rooms) - 1) {
+        else {
+          found = false
+          for (i, 0, ListCount(game.ghost_rooms) - 1) {
             if (game.ghost_rooms[i] = player.parent) {
               t = game.ghost_types[i]
-              if (t = "Shade" or t = "Shinigami" or t = "Eidolon" or t = "Haint" or t = "Kappa" or t = "Apparition" or t = "Djinn" or t = "Specter" or t = "Yurei") found = true
+              if (t = "Shade" or t = "Shinigami" or t = "Eidolon" or t = "Haint" or t = "Kappa" or t = "Apparition" or t = "Djinn" or t = "Specter" or t = "Yurei") {
+                found = true
+              }
             }
           }
-          if (found) msg ("Glowing fingerprints appear on the wall!")
-          else msg ("The UV light shows nothing.")
+          if (found) {
+            msg ("Glowing fingerprints appear on the wall!")
+          }
+          else {
+            msg ("The UV light shows nothing.")
+          }
         }
-      
-      ]]></use>
+      </use>
     </object>
-
     <object name="item_sls_camera">
       <inherit name="editor_object" />
       <alias>SLS Camera</alias>
+      <look>A video camera with a side panel to view live footage. Looks like it has a night-vision lens!</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -388,30 +367,34 @@
           msg ("You took the SLS Camera.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
-      candle_lighting_here = (item_candle.is_lit and (item_candle.parent = player.parent))
-      
-      if (candle_lighting_here) {
-      msg ("Night vision doesn't work with a lit candle.")
+      <use type="script">
+        candle_lighting_here = (item_candle.is_lit and (item_candle.parent = player.parent))
+        if (candle_lighting_here) {
+          msg ("Night vision doesn't work with a lit candle.")
         }
         else {
           found = false
           for (i, 0, ListCount(game.ghost_rooms) - 1) {
             if (game.ghost_rooms[i] = player.parent) {
               t = game.ghost_types[i]
-              if (t = "Poltergeist" or t = "Banshee" or t = "Lilu" or t = "Ghast" or t = "Haint" or t = "Lamia" or t = "Apparition" or t = "Oni" or t = "Phantom" or t = "Wraith") found = true
+              if (t = "Poltergeist" or t = "Banshee" or t = "Lilu" or t = "Ghast" or t = "Haint" or t = "Lamia" or t = "Apparition" or t = "Oni" or t = "Phantom" or t = "Wraith") {
+                found = true
+              }
             }
           }
-          if (found) msg ("A skeletal silhouette is visible on the display!")
-          else msg ("The screen is blank.")
+          if (found) {
+            msg ("A skeletal silhouette is visible on the display!")
+          }
+          else {
+            msg ("The screen is blank.")
+          }
         }
-      
-      ]]></use>
+      </use>
     </object>
-
     <object name="item_temp_sensor">
       <inherit name="editor_object" />
       <alias>Temperature Sensor</alias>
+      <look>A thermometer. This can be used to get a temperature reading of the room you are in.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -421,10 +404,9 @@
           msg ("You took the Temperature Sensor.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
+      <use type="script">
         in_room = false
         freezing = false
-
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = player.parent) {
             in_room = true
@@ -434,9 +416,7 @@
             }
           }
         }
-
         temp = 0
-
         if (in_room) {
           if (freezing) {
             temp = GetRandomInt(-10, -1)
@@ -448,18 +428,16 @@
         else {
           temp = GetRandomInt(20, 25)
         }
-
         if (game.heater_effective) {
           temp = temp + 5
         }
-
         msg ("The display reads: " + temp + "°C.")
-      ]]></use>
+      </use>
     </object>
-
     <object name="item_emf_reader">
       <inherit name="editor_object" />
       <alias>EMF Reader</alias>
+      <look>An EMF reader. It can be used to read the EMF levels of a room. A reading of level 1 means nothing is out of the ordinary.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -469,22 +447,28 @@
           msg ("You took the EMF Reader.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
+      <use type="script">
         emf5 = false
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = player.parent) {
             gt = game.ghost_types[i]
-            if (gt = "Shade" or gt = "Poltergeist" or gt = "Banshee" or gt = "Phong" or gt = "Ghast" or gt = "Incubus" or gt = "Kappa" or gt = "Moryo" or gt = "Draugr" or gt = "Phantom" or gt = "Specter" or gt = "Yokai") emf5 = true
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Banshee" or gt = "Phong" or gt = "Ghast" or gt = "Incubus" or gt = "Kappa" or gt = "Moryo" or gt = "Draugr" or gt = "Phantom" or gt = "Specter" or gt = "Yokai") {
+              emf5 = true
+            }
           }
         }
-        if (emf5) msg ("EMF Level 5! High activity.")
-        else msg ("EMF Level 1.")
-      ]]></use>
+        if (emf5) {
+          msg ("EMF Level 5! High activity.")
+        }
+        else {
+          msg ("EMF Level 1.")
+        }
+      </use>
     </object>
-
     <object name="item_spirit_box">
       <inherit name="editor_object" />
       <alias>Spirit Box</alias>
+      <look>A spirit box. Maybe you could communicate with whatever is in here?</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -494,22 +478,28 @@
           msg ("You took the Spirit Box.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
+      <use type="script">
         ok = false
         for (i, 0, ListCount(game.ghost_rooms) - 1) {
           if (game.ghost_rooms[i] = player.parent) {
             gt = game.ghost_types[i]
-            if (gt = "Shade" or gt = "Poltergeist" or gt = "Phong" or gt = "Eidolon" or gt = "Incubus" or gt = "Lamia" or gt = "Moryo" or gt = "Revenant" or gt = "Djinn" or gt = "Tulpa" or gt = "Wraith" or gt = "Yurei") ok = true
+            if (gt = "Shade" or gt = "Poltergeist" or gt = "Phong" or gt = "Eidolon" or gt = "Incubus" or gt = "Lamia" or gt = "Moryo" or gt = "Revenant" or gt = "Djinn" or gt = "Tulpa" or gt = "Wraith" or gt = "Yurei") {
+              ok = true
+            }
           }
         }
-        if (ok) msg ("A voice whispers: 'Leave...'")
-        else msg ("Static.")
-      ]]></use>
+        if (ok) {
+          msg ("A voice whispers: 'Leave...'")
+        }
+        else {
+          msg ("Static.")
+        }
+      </use>
     </object>
-
     <object name="item_parabolic">
       <inherit name="editor_object" />
       <alias>Parabolic Sensor</alias>
+      <look>A parabolic microphone. Listening to it could let you hear movement or identify abnormal sounds.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -519,7 +509,7 @@
           msg ("You took the Parabolic Sensor.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
+      <use type="script">
         i = GetRandomInt(0, ListCount(game.ghost_rooms) - 1)
         gt = game.ghost_types[i]
         r = game.ghost_rooms[i]
@@ -529,13 +519,13 @@
         else {
           msg ("You hear faint movement from the " + r.alias + ".")
         }
-      ]]></use>
+      </use>
     </object>
-
     <object name="item_journal">
       <inherit name="editor_object" />
       <alias>Journal</alias>
-      <attr name="notes" type="string"></attr>
+      <notes type="string"></notes>
+      <look>Your trusty journal. It contains information about every ghost you know. With this, it will be a lot easier to keep track of any evidence you gather.</look>
       <take type="script"><![CDATA[
         if (ListCount(GetDirectChildren(player)) >= 4) {
           msg ("Hands full!")
@@ -545,7 +535,6 @@
           msg ("You took the Journal.")
         }
       ]]></take>
-
       <use type="script"><![CDATA[
         menu = Split("Ghost Bios;Write Notes;Read Notes;Close", ";")
         show menu ("Journal:", menu, true) {
@@ -582,7 +571,7 @@
             get input {
               if (result <> null and result <> "") {
                 if (obj.notes = "") {
-                  obj.notes = result 
+                  obj.notes = result
                 }
                 else {
                   obj.notes = obj.notes + "<br/>" + result
@@ -602,13 +591,11 @@
         }
       ]]></use>
     </object>
-
     <object name="player">
       <inherit name="editor_object" />
       <inherit name="editor_player" />
     </object>
   </object>
-
   <object name="room_basement">
     <inherit name="editor_room" />
     <alias>Basement</alias>
@@ -619,7 +606,12 @@
       <inherit name="editor_object" />
       <alias>Heater Switch</alias>
       <feature_use />
-      <use type="script"><![CDATA[
+      <feature_usegive />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Use</value>
+      </displayverbs>
+      <use type="script">
         if (game.heater_on) {
           game.heater_on = false
           game.heater_timer = 5
@@ -630,35 +622,132 @@
           game.heater_timer = 5
           msg ("Heater ON. Warming takes a moment.")
         }
-      ]]></use>
-      <feature_usegive />
-      <displayverbs type="stringlist">
-        <value>Look at</value>
-        <value>Use</value>
-      </displayverbs>
+      </use>
     </object>
   </object>
-
   <object name="room_home_office">
     <inherit name="editor_room" />
     <alias>Home Office</alias>
     <exit alias="north" to="room_guest_bedroom" />
     <exit alias="west" to="room_storage_room" />
     <exit alias="south" to="room_tv_room" />
+    <object name="computer">
+      <inherit name="editor_object" />
+      <look>An old computer. Even though it is plugged in, it seems to be nonfunctional.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+    </object>
   </object>
-
   <object name="room_study">
     <inherit name="editor_room" />
     <alias>Study</alias>
     <exit alias="north" to="room_dining_room" />
     <exit alias="east" to="room_basement" />
+    <object name="desk">
+      <inherit name="editor_object" />
+      <inherit name="openable" />
+      <look>The wood of the desk is rotting.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Open</value>
+      </displayverbs>
+      <feature_container />
+      <close type="boolean">false</close>
+      <openscript type="script">
+        msg ("You open a drawer of the desk. There is a {object:picture} here.")
+      </openscript>
+    </object>
+    <object name="picture">
+      <inherit name="editor_object" />
+      <scenery />
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+      <look type="script">
+        if (picture.dusty = true) {
+          msg ("It's too dusty to see anything.")
+        }
+        else {
+          msg ("The picture is of a man, woman, and child posing and smiling.")
+        }
+      </look>
+      <dustoff type="script">
+        if (this.dusty = true) {
+          msg ("You dust off the picture.")
+          this.dusty = false
+        }
+        else {
+          msg ("You have already dusted off the picture.")
+        }
+      </dustoff>
+      <dusty />
+      <usestandardverblist type="boolean">false</usestandardverblist>
+      <useindividualverblist type="boolean">false</useindividualverblist>
+    </object>
   </object>
-
   <object name="room_tv_room">
     <inherit name="editor_room" />
     <alias>TV Room</alias>
     <exit alias="north" to="room_home_office" />
     <exit alias="west" to="room_basement" />
+    <object name="couch">
+      <inherit name="editor_object" />
+      <look type="script">
+        if (this.examined = 2) {
+          msg ("An old dusty couch. There is a {object:remote} here.")
+        }
+        else if (this.examined = 1) {
+          msg ("An old dusty couch... oh! There's something between the cushions. You find a {object:remote}.")
+          this.examined = 2
+        }
+        else {
+          msg ("An old dusty couch.")
+          this.examined = 1
+        }
+      </look>
+      <examined type="int">0</examined>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+    </object>
+    <object name="tv">
+      <inherit name="editor_object" />
+      <alias>TV</alias>
+      <scenery type="boolean">false</scenery>
+      <look>An old, box TV. Its power switch seems to have been removed, somehow.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+      </displayverbs>
+    </object>
+    <object name="remote">
+      <inherit name="editor_object" />
+      <look>A TV remote.</look>
+      <displayverbs type="stringlist">
+        <value>Look at</value>
+        <value>Use</value>
+      </displayverbs>
+      <feature_usegive />
+      <use type="script">
+        msg ("You try to turn on the TV... oh. It doesn't work.")
+      </use>
+      <scenery />
+      <visible />
+    </object>
   </object>
-
+  <verb>
+    <property>dust</property>
+    <pattern>dust</pattern>
+    <defaultexpression>WriteVerb(game.pov, "can't") + " dust " + object.article + "."</defaultexpression>
+  </verb>
+  <verb>
+    <property>dust_off</property>
+    <pattern>dust_off</pattern>
+    <defaultexpression>WriteVerb(game.pov, "can't") + " dust_off " + object.article + "."</defaultexpression>
+  </verb>
+  <verb>
+    <property>dustoff</property>
+    <pattern>dust off</pattern>
+    <defaultexpression>WriteVerb(game.pov, "can't") + " dust off " + object.article + "."</defaultexpression>
+  </verb>
 </asl>
