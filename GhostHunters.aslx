@@ -108,9 +108,11 @@
           if (game.hunt_timer <= 2) {
             if (player_in_danger) {
               if (player.is_hiding) {
-                if (item_candle.is_lit and RandomChance(50)) {
-                  msg ("<br/><color=red><b>The light gave you away! The ghost found you!</b></color>")
-                  finish
+                if (item_candle.is_lit and (item_candle.parent = player or item_candle.parent = player.parent)) {
+                  if (RandomChance(50)) {
+                    msg ("<br/><color=red><b>The light from the candle inside your hiding spot gave you away!</b></color>")
+                    finish
+                  }
                 } else {
                   // Message for hiding successfully in the danger zone
                   msg ("<br/><color=orange><b>You hear heavy, wet breathing just inches from your hiding spot...</b></color>")
@@ -753,3 +755,4 @@
     <description>You exit your hiding spot.</description>
   </verb>
 </asl>
+
