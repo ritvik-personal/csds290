@@ -14,17 +14,32 @@
     <author>Deep Desai, Noah Kiely, Ritvik Sajja, Sanchit Gupta, Vedant Gupta</author>
     <displaytypeinvocation type="boolean">false</displaytypeinvocation>
     <autodisplayexits type="boolean">false</autodisplayexits>
-    <start type="script">
-      JS.eval ("$('body').css('background-color', 'black');")
-      JS.eval ("$('#gamePanes').css('background-color', '#111111');")
-      JS.eval ("$('#gamePanes').css('color', 'white');")
-      JS.eval ("$('.pane .customstyle').css('color', 'white');")
-      JS.eval ("$('#statusLabel').css('color', 'white');")
-      JS.eval ("$('#inventoryLabel').css('color', 'white');")
-      JS.eval ("$('.ui-widget-header').css('background', '#222222');")
-      JS.eval ("$('.ui-widget-header').css('color', 'white');")
-      JS.eval ("$('#commandBar').css('background-color', '#111111');")
-      JS.eval ("$('#commandBar').css('color', 'white');")
+    <menubackground>Black</menubackground>
+    <menuforeground>Red</menuforeground>
+    <menuhoverbackground>Black</menuhoverbackground>
+    <menuhoverforeground>Blue</menuhoverforeground>
+    <start type="script"><![CDATA[
+      
+      // 1. Force the background of all panes
+      JS.eval ("$('.ui-widget-content, .ui-state-default, .ui-widget-header').css('background', '#111111');")
+
+      // 2. Fix the Grey Header & Sub-text (Targets the accordion buttons specifically)
+      JS.eval ("$('.ui-state-default, .ui-accordion-header, .ui-accordion-content').css('color', 'red');")
+      JS.eval ("$('.ui-state-default').css('border', '1px solid #333');")
+
+      // 3. Force Inventory/Places labels and every list item to Red
+      JS.eval ("$('#inventoryLabel, #statusLabel, #compassLabel, #placesObjectsLabel, .elementlist, .customstyle').css('color', 'red');")
+
+      // 4. Update Hyperlinks to a vibrant Red
+      JS.eval ("$('#gamePanes a').css('color', 'red');")
+
+      // 5. Command Bar styling
+      JS.eval ("$('#txtCommand').css({'background-color':'#000000', 'color':'red', 'border':'1px solid #444'});")
+
+      // 6. Red Ghostly Glow for main output
+      JS.eval ("$('head').append('<style>#divOutput { text-shadow: 0 0 5px rgba(255,0,0,0.7); }</style>');")
+            
+      
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
       game.heater_on = true
@@ -59,11 +74,8 @@
       }
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
       msg ("There are " + game.GHOST_COUNT + " presences in the house.")
-    </start>
-    <menubackground>Black</menubackground>
-    <menuforeground>White</menuforeground>
-    <menuhoverbackground>Black</menuhoverbackground>
-    <menuhoverforeground>Blue</menuhoverforeground>
+    ]]></start>
+    <defaultlinkforeground>Red</defaultlinkforeground>
     <turnscript name="global_turnscript">
       <enabled />
       <script><![CDATA[
@@ -98,7 +110,7 @@
               game.is_hunting = true
               game.hunt_timer = 6
               game.turns_since_hunt = 0
-              msg ("<br/><color=red><b>THE GHOST IS MANIFESTING! YOU HAVE 3 TURNS TO HIDE!</b></color>")
+              msg ("<br/><span style='text-shadow: 0 0 10px #ff0000;'><color=red><b>THE GHOST IS MANIFESTING! YOU HAVE 3 TURNS TO HIDE!</b></color></span>")
             }
           }
         }
@@ -203,12 +215,11 @@
         msg ("You remain silent... time passes.")
       </wait>
       <exit alias="exit" to="room_master_bedroom">
-        <runscript type="boolean">true</runscript>
+        <runscript />
         <script type="script">
           player.is_hiding = false
           // Reset the hiding spot buttons back to 'Hide in'
           player.parent.displayverbs = Split("Look at;Hide in", ";")
-          
           msg ("You cautiously step out from your hiding spot.")
           MovePlayer (room_master_bedroom)
         </script>
@@ -239,7 +250,8 @@
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
       <exit alias="exit" to="room_kitchen">
-        <runscript type="boolean">true</runscript>
+        <runscript />
+        <message>You cautiously step out from your hiding spot.</message>
         <script type="script">
           player.is_hiding = false
           // Reset verbs for when the player is outside again
@@ -247,7 +259,6 @@
           msg ("You cautiously step out from your hiding spot.")
           MovePlayer (room_kitchen)
         </script>
-        <message>You cautiously step out from your hiding spot.</message>
       </exit>
       <exit alias="wait" to="pantry">
         <message>You remain silent, watching the door handle... time passes.</message>
@@ -277,14 +288,14 @@
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
       <exit alias="exit" to="room_guest_bedroom">
-        <runscript type="boolean">true</runscript>
+        <runscript />
+        <message>You cautiously step out from your hiding spot.</message>
         <script type="script">
           player.is_hiding = false
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
           MovePlayer (room_guest_bedroom)
         </script>
-        <message>You cautiously step out from your hiding spot.</message>
       </exit>
       <exit alias="wait" to="closet">
         <message>You remain silent, watching the door handle... time passes.</message>
