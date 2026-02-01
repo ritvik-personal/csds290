@@ -143,10 +143,24 @@
 
         // Passive Candle Blowout
         if (item_candle.is_lit and not game.is_hunting) {
-          foreach (room, game.ghost_rooms) {
-            if (player.parent = room and RandomChance(20)) {
-              item_candle.is_lit = false
-              msg ("<br/><b>A cold breath blows out your candle!</b>")
+          for (i, 0, ListCount(game.ghost_rooms) - 1) {
+            room = game.ghost_rooms[i]
+            ghost_type = game.ghost_types[i]
+    
+            // 1. Check if the player is in this specific ghost room
+            if (player.parent = room) {
+            // 2. Check if the ghost is one that blows out candles
+            can_blow = (ghost_type = "Zar" or ghost_type = "Shinigami" or ghost_type = "Lilu" or ghost_type = "Ghast" or ghost_type = "Incubus" or ghost_type = "Revenant" or ghost_type = "Djinn" or ghost_type = "Oni" or ghost_type = "Tulpa" or ghost_type = "Yokai")
+      
+            if (can_blow) {
+              // 3. Check if candle is in the room (held by player or dropped)
+              if (item_candle.parent = player or item_candle.parent = room) {
+                if (RandomChance(20)) {
+                  item_candle.is_lit = false
+                  msg ("<br/><b>A cold breath blows out your candle!</b>")
+                }
+              }
+            }
             }
           }
         }
@@ -755,4 +769,5 @@
     <description>You exit your hiding spot.</description>
   </verb>
 </asl>
+
 
