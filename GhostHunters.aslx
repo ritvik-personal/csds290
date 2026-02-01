@@ -356,7 +356,7 @@
         }
       ]]></take>
       <use type="script"><![CDATA[
-      candle_lighting_here = (item_candle.is_list and item_candle.parent = player.parent)
+      candle_lighting_here = (item_candle.is_lit and item_candle.parent = player.parent)
       
       if (candle_lighting_here) {
         msg ("The candle light is too strong. Blow it out first.")
@@ -389,7 +389,7 @@
         }
       ]]></take>
       <use type="script"><![CDATA[
-      candle_lighting_here = (item_candle.is_list and item_candle.parent = player.parent)
+      candle_lighting_here = (item_candle.is_lit and (item_candle.parent = player.parent))
       
       if (candle_lighting_here) {
       msg ("Night vision doesn't work with a lit candle.")
@@ -550,37 +550,44 @@
         menu = Split("Ghost Bios;Write Notes;Read Notes;Close", ";")
         show menu ("Journal:", menu, true) {
           if (result = "Ghost Bios") {
-            msg ("Shade: Quiet and watchful. Evidence tends to include UV prints, Spirit responses, and Max EMF.")
-            msg ("Poltergeist: Violent disturbances. Evidence tends to include Max EMF, Spirit responses, and SLS silhouettes.")
-            msg ("Zar: Cold presence with unnatural noises. Evidence tends to include Freezing temps, Abnormal sounds, and Candle blowouts.")
-            msg ("Shinigami: A deathly aura. Evidence tends to include UV prints, Abnormal sounds, and Candle blowouts.")
-            msg ("Banshee: A haunting wail. Evidence tends to include Abnormal sounds, SLS silhouettes, and Max EMF.")
-            msg ("Lilu: A creeping darkness. Evidence tends to include Candle blowouts, SLS silhouettes, and Freezing temps.")
-            msg ("Phong: Dark magic residue. Evidence tends to include Max EMF, Freezing temps, and Spirit responses.")
-            msg ("Eidolon: A lingering memory made real. Evidence tends to include UV prints, Abnormal sounds, and Spirit responses.")
-            msg ("Ghast: A physical, disruptive entity. Evidence tends to include SLS silhouettes, Candle blowouts, and Max EMF.")
-            msg ("Haint: A sneaking presence that watches you. Evidence tends to include UV prints, SLS silhouettes, and Abnormal sounds.")
-            msg ("Incubus: A predatory presence that feeds on attention. Evidence tends to include Candle blowouts, Max EMF, and Spirit responses.")
-            msg ("Kappa: A cold, water-bound entity. Evidence tends to include UV prints, Freezing temps, and Max EMF.")
-            msg ("Lamia: A calculated, intelligent spirit. Evidence tends to include SLS silhouettes, Freezing temps, and Spirit responses.")
-            msg ("Moryo: A vengeful spirit that distorts signals. Evidence tends to include Abnormal sounds, Max EMF, and Spirit responses.")
-            msg ("Revenant: Relentless and persistent. Evidence tends to include Freezing temps, Candle blowouts, and Spirit responses.")
-            msg ("Apparition: A visible manifestation of cold. Evidence tends to include UV prints, SLS silhouettes, and Freezing temps.")
-            msg ("Djinn: A trickster that feeds on flame and whispers. Evidence tends to include UV prints, Candle blowouts, and Spirit responses.")
-            msg ("Draugr: An ancient presence from the ice. Evidence tends to include Abnormal sounds, Freezing temps, and Max EMF.")
-            msg ("Oni: Brutal and physical. Evidence tends to include SLS silhouettes, Abnormal sounds, and Candle blowouts.")
-            msg ("Phantom: A lingering image that disrupts electronics. Evidence tends to include SLS silhouettes, Freezing temps, and Max EMF.")
-            msg ("Specter: A restless watcher. Evidence tends to include UV prints, Abnormal sounds, and Max EMF.")
-            msg ("Tulpa: A thought-form made dangerous. Evidence tends to include Abnormal sounds, Candle blowouts, and Spirit responses.")
-            msg ("Wraith: A stalking spirit that answers in voices. Evidence tends to include SLS silhouettes, Abnormal sounds, and Spirit responses.")
-            msg ("Yokai: A winter curse drawn to heat and power. Evidence tends to include Freezing temps, Candle blowouts, and Max EMF.")
-            msg ("Yurei: A sorrowful spirit that leaves traces of frost. Evidence tends to include UV prints, Freezing temps, and Spirit responses.")
+            msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include UV prints, Spirit responses, and Max EMF.")
+            msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include Max EMF, Spirit responses, and SLS silhouettes.")
+            msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include Freezing temps, Abnormal sounds, and Candle blowouts.")
+            msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include UV prints, Abnormal sounds, and Candle blowouts.")
+            msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include Abnormal sounds, SLS silhouettes, and Max EMF.")
+            msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include Candle blowouts, SLS silhouettes, and Freezing temps.")
+            msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include Max EMF, Freezing temps, and Spirit responses.")
+            msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include UV prints, Abnormal sounds, and Spirit responses.")
+            msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include SLS silhouettes, Candle blowouts, and Max EMF.")
+            msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include UV prints, SLS silhouettes, and Abnormal sounds.")
+            msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include Candle blowouts, Max EMF, and Spirit responses.")
+            msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include UV prints, Freezing temps, and Max EMF.")
+            msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include SLS silhouettes, Freezing temps, and Spirit responses.")
+            msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include Abnormal sounds, Max EMF, and Spirit responses.")
+            msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include Freezing temps, Candle blowouts, and Spirit responses.")
+            msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include UV prints, SLS silhouettes, and Freezing temps.")
+            msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include UV prints, Candle blowouts, and Spirit responses.")
+            msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include Abnormal sounds, Freezing temps, and Max EMF.")
+            msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include SLS silhouettes, Abnormal sounds, and Candle blowouts.")
+            msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include SLS silhouettes, Freezing temps, and Max EMF.")
+            msg ("<b>Specter</b>: A restless watcher. Evidence tends to include UV prints, Abnormal sounds, and Max EMF.")
+            msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include Abnormal sounds, Candle blowouts, and Spirit responses.")
+            msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include SLS silhouettes, Abnormal sounds, and Spirit responses.")
+            msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include Freezing temps, Candle blowouts, and Max EMF.")
+            msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include UV prints, Freezing temps, and Spirit responses.")
           }
           else if (result = "Write Notes") {
-            get input ("Write a note:", "") {
+            obj = this
+            msg ("Type your note and press Enter:")
+            get input {
               if (result <> null and result <> "") {
-                if (this.notes = "") this.notes = result else this.notes = this.notes + "^" + result
-                msg ("You write it down.")
+                if (obj.notes = "") {
+                  obj.notes = result 
+                }
+                else {
+                  obj.notes = obj.notes + "<br/>" + result
+                }
+                msg ("<i>Note recorded in journal.</i>")
               }
             }
           }
@@ -589,8 +596,7 @@
               msg ("Your notes are blank.")
             }
             else {
-              msg ("Your notes:")
-              msg (Replace(this.notes, "^", Chr(10)))
+              msg ("<b>Journal Entries:</b><br/>" + this.notes)
             }
           }
         }
