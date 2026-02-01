@@ -19,6 +19,7 @@
       rooms = NewObjectList()
       list add (rooms, room_master_bedroom)
       list add (rooms, room_kitchen)
+      list add (rooms, room_storage_room)
       list add (rooms, room_guest_bedroom)
       list add (rooms, room_dining_room)
       list add (rooms, room_home_office)
@@ -71,6 +72,7 @@
         rooms2 = NewObjectList()
         list add (rooms2, room_master_bedroom)
         list add (rooms2, room_kitchen)
+        list add (rooms2, room_storage_room)
         list add (rooms2, room_guest_bedroom)
         list add (rooms2, room_dining_room)
         list add (rooms2, room_home_office)
@@ -354,12 +356,14 @@
         }
       ]]></take>
       <use type="script"><![CDATA[
-        if (item_candle.is_lit) {
-          msg ("The candle light is too strong. Blow it out first.")
+      candle_lighting_here = (item_candle.is_list and item_candle.parent = player.parent)
+      
+      if (candle_lighting_here) {
+        msg ("The candle light is too strong. Blow it out first.")
         }
-        else {
-          found = false
-          for (i, 0, ListCount(game.ghost_rooms) - 1) {
+      else {
+        found = false
+        for (i, 0, ListCount(game.ghost_rooms) - 1) {
             if (game.ghost_rooms[i] = player.parent) {
               t = game.ghost_types[i]
               if (t = "Shade" or t = "Shinigami" or t = "Eidolon" or t = "Haint" or t = "Kappa" or t = "Apparition" or t = "Djinn" or t = "Specter" or t = "Yurei") found = true
@@ -368,6 +372,7 @@
           if (found) msg ("Glowing fingerprints appear on the wall!")
           else msg ("The UV light shows nothing.")
         }
+      
       ]]></use>
     </object>
 
@@ -384,8 +389,10 @@
         }
       ]]></take>
       <use type="script"><![CDATA[
-        if (item_candle.is_lit) {
-          msg ("Night vision doesn't work with a lit candle.")
+      candle_lighting_here = (item_candle.is_list and item_candle.parent = player.parent)
+      
+      if (candle_lighting_here) {
+      msg ("Night vision doesn't work with a lit candle.")
         }
         else {
           found = false
@@ -398,6 +405,7 @@
           if (found) msg ("A skeletal silhouette is visible on the display!")
           else msg ("The screen is blank.")
         }
+      
       ]]></use>
     </object>
 
