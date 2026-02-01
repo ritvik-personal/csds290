@@ -3,6 +3,11 @@
   <include ref="English.aslx" />
   <include ref="Core.aslx" />
   <game name="GhostHunters">
+    <defaultforeground>White</defaultforeground>
+    <defaultbackground>Black</defaultbackground>
+    <defaultfont>'Courier New', Courier, monospace</defaultfont>
+    <fontsize type="int">14</fontsize>
+    <bordercolor>#333333</bordercolor>
     <gameid>ee9ebba1-1b57-4393-a469-69c604228329</gameid>
     <version>1.9</version>
     <firstpublished>2026</firstpublished>
@@ -769,5 +774,6 @@
     <description>You exit your hiding spot.</description>
   </verb>
 </asl>
+
 
 
