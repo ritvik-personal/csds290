@@ -15,6 +15,16 @@
     <displaytypeinvocation type="boolean">false</displaytypeinvocation>
     <autodisplayexits type="boolean">false</autodisplayexits>
     <start type="script">
+      JS.eval ("$('body').css('background-color', 'black');")
+      JS.eval ("$('#gamePanes').css('background-color', '#111111');")
+      JS.eval ("$('#gamePanes').css('color', 'white');")
+      JS.eval ("$('.pane .customstyle').css('color', 'white');")
+      JS.eval ("$('#statusLabel').css('color', 'white');")
+      JS.eval ("$('#inventoryLabel').css('color', 'white');")
+      JS.eval ("$('.ui-widget-header').css('background', '#222222');")
+      JS.eval ("$('.ui-widget-header').css('color', 'white');")
+      JS.eval ("$('#commandBar').css('background-color', '#111111');")
+      JS.eval ("$('#commandBar').css('color', 'white');")
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
       game.heater_on = true
@@ -50,6 +60,10 @@
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
       msg ("There are " + game.GHOST_COUNT + " presences in the house.")
     </start>
+    <menubackground>Black</menubackground>
+    <menuforeground>White</menuforeground>
+    <menuhoverbackground>Black</menuhoverbackground>
+    <menuhoverforeground>Blue</menuhoverforeground>
     <turnscript name="global_turnscript">
       <enabled />
       <script><![CDATA[
@@ -59,41 +73,37 @@
           game.heater_timer = game.heater_timer - 1
           if (game.heater_timer = 0) {
             if (game.heater_on) {
-              game.heater_effective = true; msg ("<br/><i>The heater is now effective.</i>")
+              game.heater_effective = true
+              msg ("<br/><i>The heater is now effective.</i>")
             }
             else {
-              game.heater_effective = false; msg ("<br/><i>The house is cold again.</i>")
+              game.heater_effective = false
+              msg ("<br/><i>The house is cold again.</i>")
             }
           }
         }
-
         game.turns_since_hunt = game.turns_since_hunt + 1
-
         if (not HasAttribute(game, "is_hunting")) {
           game.is_hunting = false
         }
         if (not HasAttribute(player, "is_hiding")) {
           player.is_hiding = false
         }
-        
         // Start Hunt
         if (not game.is_hunting) {
           if (game.turns_since_hunt >= 20) {
             // Base 10% chance + 2% for every turn over 20
             hunt_chance = 10 + (game.turns_since_hunt - 20)*2
-            
             if (RandomChance(hunt_chance)) {
               game.is_hunting = true
               game.hunt_timer = 6
-              game.turns_since_hunt = 0 // Reset counter so next hunt is delayed
+              game.turns_since_hunt = 0
               msg ("<br/><color=red><b>THE GHOST IS MANIFESTING! YOU HAVE 3 TURNS TO HIDE!</b></color>")
             }
           }
         }
-
         if (game.is_hunting) {
           game.hunt_timer = game.hunt_timer - 1
-          
           // --- STEP 1: CALCULATE DANGER ---
           player_in_danger = false
           foreach (room, game.ghost_rooms) {
@@ -108,7 +118,6 @@
               }
             }
           }
-
           // --- STEP 2: ACTIVE DANGER (Grace period over) ---
           if (game.hunt_timer <= 2) {
             if (player_in_danger) {
@@ -118,54 +127,54 @@
                     msg ("<br/><color=red><b>The light from the candle inside your hiding spot gave you away!</b></color>")
                     finish
                   }
-                } else {
+                }
+                else {
                   // Message for hiding successfully in the danger zone
                   msg ("<br/><color=orange><b>You hear heavy, wet breathing just inches from your hiding spot...</b></color>")
                 }
-              } else {
+              }
+              else {
                 msg ("<br/><color=red><b>The ghost caught you in the open!</b></color>")
                 finish
               }
-            } else {
+            }
+            else {
               // Danger is elsewhere in the house
               msg ("<br/><i>You hear distant thumping and screams from elsewhere in the house.</i>")
             }
-          } 
-          // --- STEP 3: GRACE PERIOD WARNINGS ---
+          }
           else {
             if (player_in_danger) {
               msg ("<br/><color=orange><b>You hear heavy breathing right behind you... HIDE NOW!</b></color>")
-            } else {
+            }
+            else {
               msg ("<br/><i>You hear distant thumping sounds... the ghost is nearby.</i>")
             }
           }
-
+          // --- STEP 3: GRACE PERIOD WARNINGS ---
           if (game.hunt_timer <= 0) {
             game.is_hunting = false
             msg ("<br/><b>The hunt is over. It is safe to come out.</b>")
           }
         }
-
         // Passive Candle Blowout
         if (item_candle.is_lit and not game.is_hunting) {
           for (i, 0, ListCount(game.ghost_rooms) - 1) {
             room = game.ghost_rooms[i]
             ghost_type = game.ghost_types[i]
-    
             // 1. Check if the player is in this specific ghost room
             if (player.parent = room) {
-            // 2. Check if the ghost is one that blows out candles
-            can_blow = (ghost_type = "Zar" or ghost_type = "Shinigami" or ghost_type = "Lilu" or ghost_type = "Ghast" or ghost_type = "Incubus" or ghost_type = "Revenant" or ghost_type = "Djinn" or ghost_type = "Oni" or ghost_type = "Tulpa" or ghost_type = "Yokai")
-      
-            if (can_blow) {
-              // 3. Check if candle is in the room (held by player or dropped)
-              if (item_candle.parent = player or item_candle.parent = room) {
-                if (RandomChance(20)) {
-                  item_candle.is_lit = false
-                  msg ("<br/><b>A cold breath blows out your candle!</b>")
+              // 2. Check if the ghost is one that blows out candles
+              can_blow = (ghost_type = "Zar" or ghost_type = "Shinigami" or ghost_type = "Lilu" or ghost_type = "Ghast" or ghost_type = "Incubus" or ghost_type = "Revenant" or ghost_type = "Djinn" or ghost_type = "Oni" or ghost_type = "Tulpa" or ghost_type = "Yokai")
+              if (can_blow) {
+                // 3. Check if candle is in the room (held by player or dropped)
+                if (item_candle.parent = player or item_candle.parent = room) {
+                  if (RandomChance(20)) {
+                    item_candle.is_lit = false
+                    msg ("<br/><b>A cold breath blows out your candle!</b>")
+                  }
                 }
               }
-            }
             }
           }
         }
@@ -194,7 +203,15 @@
         msg ("You remain silent... time passes.")
       </wait>
       <exit alias="exit" to="room_master_bedroom">
-        <message>You cautiously step out from your hiding spot.</message>
+        <runscript type="boolean">true</runscript>
+        <script type="script">
+          player.is_hiding = false
+          // Reset the hiding spot buttons back to 'Hide in'
+          player.parent.displayverbs = Split("Look at;Hide in", ";")
+          
+          msg ("You cautiously step out from your hiding spot.")
+          MovePlayer (room_master_bedroom)
+        </script>
       </exit>
       <exit alias="wait" to="master_bedroom_closet">
         <lockmessage type="string"></lockmessage>
@@ -211,8 +228,6 @@
       <displayverbs type="stringlist">
         <value>Look at</value>
         <value>Hide in</value>
-        <value>Wait</value>
-        <value>Exit</value>
       </displayverbs>
       <attr name="hide_in" type="script">
         player.is_hiding = true
@@ -224,6 +239,14 @@
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
       <exit alias="exit" to="room_kitchen">
+        <runscript type="boolean">true</runscript>
+        <script type="script">
+          player.is_hiding = false
+          // Reset verbs for when the player is outside again
+          player.parent.displayverbs = Split("Look at;Hide in", ";")
+          msg ("You cautiously step out from your hiding spot.")
+          MovePlayer (room_kitchen)
+        </script>
         <message>You cautiously step out from your hiding spot.</message>
       </exit>
       <exit alias="wait" to="pantry">
@@ -243,8 +266,6 @@
       <displayverbs type="stringlist">
         <value>Look at</value>
         <value>Hide in</value>
-        <value>Wait</value>
-        <value>Exit</value>
       </displayverbs>
       <attr name="hide_in" type="script">
         player.is_hiding = true
@@ -256,6 +277,13 @@
         msg ("You remain silent, watching the door handle... time passes.")
       </wait>
       <exit alias="exit" to="room_guest_bedroom">
+        <runscript type="boolean">true</runscript>
+        <script type="script">
+          player.is_hiding = false
+          player.parent.displayverbs = Split("Look at;Hide in", ";")
+          msg ("You cautiously step out from your hiding spot.")
+          MovePlayer (room_guest_bedroom)
+        </script>
         <message>You cautiously step out from your hiding spot.</message>
       </exit>
       <exit alias="wait" to="closet">
@@ -774,6 +802,3 @@
     <description>You exit your hiding spot.</description>
   </verb>
 </asl>
-
-
-
