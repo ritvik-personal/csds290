@@ -949,7 +949,7 @@
       msg ("- Use tools in the same room as a ghost to get evidence.")
       msg ("- Candle light can interfere with UV prints and the SLS Camera.")
       msg ("- Freezing temps (below 0) can be influenced by the heater.")
-      msg ("- The terminal lets you select " + game.GHOST_COUNT + " ghosts and submit your guess.")
+      msg ("- Use the terminal to select " + game.GHOST_COUNT + " ghosts and submit your guess.")
       msg ("- The journal contains ghost bios and a space for notes.")
       msg ("- You can wait out hunts in a hiding spot!")
     </script>
