@@ -343,13 +343,40 @@
             list add (menu, n)
           }
         }
-        list add (menu, "Submit")
-        list add (menu, "Reset")
-        list add (menu, "Cancel")
-        prompt = "Select " + game.GHOST_COUNT + " ghosts (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + "). Toggle names, then Submit."
+        prompt = "Select " + game.GHOST_COUNT + " ghosts (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + ")."
         show menu (prompt, menu, true) {
-          if (result = "Cancel") {
-            msg ("You step away from the terminal.")
+          pick = Replace(result, " (selected)", "")
+          already = false
+          foreach (s2, game.terminal_chosen) {
+            if (s2 = pick) {
+              already = true
+            }
+          }
+          if (already) {
+            list remove (game.terminal_chosen, pick)
+          }
+          else {
+            if (ListCount(game.terminal_chosen) < game.GHOST_COUNT) {
+              list add (game.terminal_chosen, pick)
+            }
+            else {
+              msg ("You already selected " + game.GHOST_COUNT + ". Unselect one first or Submit.")
+            }
+          }
+          do (this, "ShowActionMenu")
+        }
+      ]]></ShowGuessMenu>
+      <ShowActionMenu type="script"><![CDATA[
+        if (ListCount(game.terminal_chosen) = 0) {
+          msg ("Selected: None")
+        }
+        else {
+          msg ("Selected: " + Join(game.terminal_chosen, ", "))
+        }
+        action_menu = Split("Continue selecting;Submit;Reset;Exit terminal", ";")
+        show menu ("Terminal actions (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + "):", action_menu, true) {
+          if (result = "Continue selecting") {
+            do (this, "ShowGuessMenu")
           }
           else if (result = "Reset") {
             game.terminal_chosen = NewStringList()
@@ -390,29 +417,11 @@
               }
             }
           }
-          else {
-            pick = Replace(result, " (selected)", "")
-            already = false
-            foreach (s2, game.terminal_chosen) {
-              if (s2 = pick) {
-                already = true
-              }
-            }
-            if (already) {
-              list remove (game.terminal_chosen, pick)
-            }
-            else {
-              if (ListCount(game.terminal_chosen) < game.GHOST_COUNT) {
-                list add (game.terminal_chosen, pick)
-              }
-              else {
-                msg ("You already selected " + game.GHOST_COUNT + ". Unselect one first or Submit.")
-              }
-            }
-            do (this, "ShowGuessMenu")
+          else if (result = "Exit terminal") {
+            msg ("You step away from the terminal.")
           }
         }
-      ]]></ShowGuessMenu>
+      ]]></ShowActionMenu>
       <use type="script">
         game.terminal_chosen = NewStringList()
         do (this, "ShowGuessMenu")
@@ -684,37 +693,152 @@
           msg ("You took the Journal.")
         }
       ]]></take>
-      <use type="script"><![CDATA[
-        menu = Split("Ghost Bios;Write Notes;Read Notes;Close", ";")
+      <ShowJournalMenu type="script"><![CDATA[
+        menu = Split("Ghost Bios;Add Note;View Notes;Close Journal", ";")
         show menu ("Journal:", menu, true) {
           if (result = "Ghost Bios") {
-            msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include <b>UV prints, Spirit box responses, and Max EMF.</b><br/>")
-            msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include <b>Max EMF, Spirit box responses, and SLS silhouettes.</b><br/>")
-            msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include <b>Freezing temps, Abnormal sounds, and Candle blowouts.</b><br/>")
-            msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include <b>UV prints, Abnormal sounds, and Candle blowouts.</b><br/>")
-            msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include <b>Abnormal sounds, SLS silhouettes, and Max EMF.</b><br/>")
-            msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include <b>Candle blowouts, SLS silhouettes, and Freezing temps.</b><br/>")
-            msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include <b>Max EMF, Freezing temps, and Spirit box responses.</b><br/>")
-            msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include <b>UV prints, Abnormal sounds, and Spirit box responses.</b><br/>")
-            msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include <b>SLS silhouettes, Candle blowouts, and Max EMF.</b><br/>")
-            msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include <b>UV prints, SLS silhouettes, and Abnormal sounds.</b><br/>")
-            msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include <b>Candle blowouts, Max EMF, and Spirit box responses.</b><br/>")
-            msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include <b>UV prints, Freezing temps, and Max EMF.</b><br/>")
-            msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Spirit box responses.</b><br/>")
-            msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include <b>Abnormal sounds, Max EMF, and Spirit box responses.</b><br/>")
-            msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include <b>Freezing temps, Candle blowouts, and Spirit box responses.</b><br/>")
-            msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include <b>UV prints, SLS silhouettes, and Freezing temps.</b><br/>")
-            msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include <b>UV prints, Candle blowouts, and Spirit box responses.</b><br/>")
-            msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include <b>Abnormal sounds, Freezing temps, and Max EMF.</b><br/>")
-            msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Candle blowouts.</b><br/>")
-            msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Max EMF.</b><br/>")
-            msg ("<b>Specter</b>: A restless watcher. Evidence tends to include <b>UV prints, Abnormal sounds, and Max EMF.</b><br/>")
-            msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include <b>Abnormal sounds, Candle blowouts, and Spirit box responses.</b><br/>")
-            msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Spirit box responses.</b><br/>")
-            msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include <b>Freezing temps, Candle blowouts, and Max EMF.</b><br/>")
-            msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include <b>UV prints, Freezing temps, and Spirit box responses.</b><br/>")
+            ghost_bios = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
+            bio_menu = NewStringList()
+            for (i, 0, ListCount(ghost_bios) - 1) {
+              list add (bio_menu, ghost_bios[i])
+            }
+            list add (bio_menu, "Show All")
+            list add (bio_menu, "Back")
+            show menu ("Ghost Bios:", bio_menu, true) {
+              if (result = "Back") {
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Show All") {
+                msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include <b>UV prints, Spirit box responses, and Max EMF.</b><br/>")
+                msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include <b>Max EMF, Spirit box responses, and SLS silhouettes.</b><br/>")
+                msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include <b>Freezing temps, Abnormal sounds, and Candle blowouts.</b><br/>")
+                msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include <b>UV prints, Abnormal sounds, and Candle blowouts.</b><br/>")
+                msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include <b>Abnormal sounds, SLS silhouettes, and Max EMF.</b><br/>")
+                msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include <b>Candle blowouts, SLS silhouettes, and Freezing temps.</b><br/>")
+                msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include <b>Max EMF, Freezing temps, and Spirit box responses.</b><br/>")
+                msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include <b>UV prints, Abnormal sounds, and Spirit box responses.</b><br/>")
+                msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include <b>SLS silhouettes, Candle blowouts, and Max EMF.</b><br/>")
+                msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include <b>UV prints, SLS silhouettes, and Abnormal sounds.</b><br/>")
+                msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include <b>Candle blowouts, Max EMF, and Spirit box responses.</b><br/>")
+                msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include <b>UV prints, Freezing temps, and Max EMF.</b><br/>")
+                msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Spirit box responses.</b><br/>")
+                msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include <b>Abnormal sounds, Max EMF, and Spirit box responses.</b><br/>")
+                msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include <b>Freezing temps, Candle blowouts, and Spirit box responses.</b><br/>")
+                msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include <b>UV prints, SLS silhouettes, and Freezing temps.</b><br/>")
+                msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include <b>UV prints, Candle blowouts, and Spirit box responses.</b><br/>")
+                msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include <b>Abnormal sounds, Freezing temps, and Max EMF.</b><br/>")
+                msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Candle blowouts.</b><br/>")
+                msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Max EMF.</b><br/>")
+                msg ("<b>Specter</b>: A restless watcher. Evidence tends to include <b>UV prints, Abnormal sounds, and Max EMF.</b><br/>")
+                msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include <b>Abnormal sounds, Candle blowouts, and Spirit box responses.</b><br/>")
+                msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Spirit box responses.</b><br/>")
+                msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include <b>Freezing temps, Candle blowouts, and Max EMF.</b><br/>")
+                msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include <b>UV prints, Freezing temps, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Apparition") {
+                msg ("<b>Apparition</b>: A visible manifestation of cold. Evidence tends to include <b>UV prints, SLS silhouettes, and Freezing temps.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Banshee") {
+                msg ("<b>Banshee</b>: A haunting wail. Evidence tends to include <b>Abnormal sounds, SLS silhouettes, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Djinn") {
+                msg ("<b>Djinn</b>: A trickster that feeds on flame and whispers. Evidence tends to include <b>UV prints, Candle blowouts, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Draugr") {
+                msg ("<b>Draugr</b>: An ancient presence from the ice. Evidence tends to include <b>Abnormal sounds, Freezing temps, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Eidolon") {
+                msg ("<b>Eidolon</b>: A lingering memory made real. Evidence tends to include <b>UV prints, Abnormal sounds, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Ghast") {
+                msg ("<b>Ghast</b>: A physical, disruptive entity. Evidence tends to include <b>SLS silhouettes, Candle blowouts, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Haint") {
+                msg ("<b>Haint</b>: A sneaking presence that watches you. Evidence tends to include <b>UV prints, SLS silhouettes, and Abnormal sounds.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Incubus") {
+                msg ("<b>Incubus</b>: A predatory presence that feeds on attention. Evidence tends to include <b>Candle blowouts, Max EMF, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Kappa") {
+                msg ("<b>Kappa</b>: A cold, water-bound entity. Evidence tends to include <b>UV prints, Freezing temps, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Lamia") {
+                msg ("<b>Lamia</b>: A calculated, intelligent spirit. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Lilu") {
+                msg ("<b>Lilu</b>: A creeping darkness. Evidence tends to include <b>Candle blowouts, SLS silhouettes, and Freezing temps.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Moryo") {
+                msg ("<b>Moryo</b>: A vengeful spirit that distorts signals. Evidence tends to include <b>Abnormal sounds, Max EMF, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Oni") {
+                msg ("<b>Oni</b>: Brutal and physical. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Candle blowouts.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Phantom") {
+                msg ("<b>Phantom</b>: A lingering image that disrupts electronics. Evidence tends to include <b>SLS silhouettes, Freezing temps, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Phong") {
+                msg ("<b>Phong</b>: Dark magic residue. Evidence tends to include <b>Max EMF, Freezing temps, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Poltergeist") {
+                msg ("<b>Poltergeist</b>: Violent disturbances. Evidence tends to include <b>Max EMF, Spirit box responses, and SLS silhouettes.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Revenant") {
+                msg ("<b>Revenant</b>: Relentless and persistent. Evidence tends to include <b>Freezing temps, Candle blowouts, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Shade") {
+                msg ("<b>Shade</b>: Quiet and watchful. Evidence tends to include <b>UV prints, Spirit box responses, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Shinigami") {
+                msg ("<b>Shinigami</b>: A deathly aura. Evidence tends to include <b>UV prints, Abnormal sounds, and Candle blowouts.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Specter") {
+                msg ("<b>Specter</b>: A restless watcher. Evidence tends to include <b>UV prints, Abnormal sounds, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Tulpa") {
+                msg ("<b>Tulpa</b>: A thought-form made dangerous. Evidence tends to include <b>Abnormal sounds, Candle blowouts, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Wraith") {
+                msg ("<b>Wraith</b>: A stalking spirit that answers in voices. Evidence tends to include <b>SLS silhouettes, Abnormal sounds, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Yokai") {
+                msg ("<b>Yokai</b>: A winter curse drawn to heat and power. Evidence tends to include <b>Freezing temps, Candle blowouts, and Max EMF.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Yurei") {
+                msg ("<b>Yurei</b>: A sorrowful spirit that leaves traces of frost. Evidence tends to include <b>UV prints, Freezing temps, and Spirit box responses.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+              else if (result = "Zar") {
+                msg ("<b>Zar</b>: Cold presence with unnatural noises. Evidence tends to include <b>Freezing temps, Abnormal sounds, and Candle blowouts.</b><br/>")
+                do (this, "ShowJournalMenu")
+              }
+            }
           }
-          else if (result = "Write Notes") {
+          else if (result = "Add Note") {
             obj = this
             msg ("Type your note and press Enter:")
             get input {
@@ -727,17 +851,22 @@
                 }
                 msg ("<i>Note recorded in journal.</i>")
               }
+              do (obj, "ShowJournalMenu")
             }
           }
-          else if (result = "Read Notes") {
+          else if (result = "View Notes") {
             if (this.notes = "") {
               msg ("Your notes are blank.")
             }
             else {
               msg ("<b>Journal Entries:</b><br/>" + this.notes)
             }
+            do (this, "ShowJournalMenu")
           }
         }
+      ]]></ShowJournalMenu>
+      <use type="script"><![CDATA[
+        do (this, "ShowJournalMenu")
       ]]></use>
       <look>Your trusty journal. Contains a catalogue of every kind of ghost you know. You can also use it to take notes.</look>
     </object>
@@ -807,6 +936,17 @@
     <pattern>hide in; enter; hide; climb into</pattern>
     <description>You hide away.</description>
   </verb>
+  <command name="help">
+    <pattern>help; hints; hint; ?</pattern>
+    <script>
+      msg ("Hints:")
+      msg ("- Use tools in the same room as a ghost to get evidence.")
+      msg ("- Candle light can block UV/SLS readings; blow it out first.")
+      msg ("- Freezing temps can be influenced by the heater.")
+      msg ("- The terminal lets you select " + game.GHOST_COUNT + " ghosts and submit your guess.")
+      msg ("- The journal contains ghost bios and your notes.")
+    </script>
+  </command>
   <command name="exit_hiding">
     <pattern>leave; exit; get out</pattern>
     <script>
