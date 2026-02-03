@@ -66,7 +66,8 @@
         list remove (available_rooms, rr)
       }
       msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
-      msg ("There are " + game.GHOST_COUNT + " presences in the house.")
+      msg ("There are " + game.GHOST_COUNT + " supernatural presences in the house.")
+      msg ("Type 'help' for useful hints on how to play.")
     ]]></start>
     <turnscript name="global_turnscript">
       <enabled />
