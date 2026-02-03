@@ -36,6 +36,7 @@
       JS.eval ("$('#txtCommand').css({'background-color':'#000000', 'color':'red', 'border':'1px solid #444'});")
       // 6. Red Ghostly Glow for main output
       JS.eval ("$('head').append('<style>#divOutput { text-shadow: 0 0 5px rgba(255,0,0,0.7); }</style>');")
+      play sound ("background.mp3", false, true)
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
       game.heater_on = true
@@ -106,6 +107,7 @@
               game.is_hunting = true
               game.hunt_timer = 6
               game.turns_since_hunt = 0
+              play sound ("hunt.mp3", false, true)
               msg ("<br/><span style='text-shadow: 0 0 10px #ff0000;'><color=red><b>THE GHOST IS MANIFESTING! YOU HAVE 3 TURNS TO HIDE!</b></color></span>")
             }
           }
@@ -162,6 +164,7 @@
           // --- STEP 3: GRACE PERIOD WARNINGS ---
           if (game.hunt_timer <= 0) {
             game.is_hunting = false
+            play sound ("background.mp3", false, true)
             msg ("<br/><b>The hunt is over. It is safe to come out.</b>")
           }
         }
