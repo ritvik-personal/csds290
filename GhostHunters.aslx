@@ -699,10 +699,10 @@
           if (result = "Ghost Bios") {
             ghost_bios = Split("Apparition;Banshee;Djinn;Draugr;Eidolon;Ghast;Haint;Incubus;Kappa;Lamia;Lilu;Moryo;Oni;Phantom;Phong;Poltergeist;Revenant;Shade;Shinigami;Specter;Tulpa;Wraith;Yokai;Yurei;Zar", ";")
             bio_menu = NewStringList()
+            list add (bio_menu, "Show All")
             for (i, 0, ListCount(ghost_bios) - 1) {
               list add (bio_menu, ghost_bios[i])
             }
-            list add (bio_menu, "Show All")
             list add (bio_menu, "Back")
             show menu ("Ghost Bios:", bio_menu, true) {
               if (result = "Back") {
@@ -971,4 +971,5 @@
     <pattern>exit; leave; get out</pattern>
     <description>You exit your hiding spot.</description>
   </verb>
+
 </asl>
