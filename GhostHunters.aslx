@@ -36,7 +36,7 @@
       game.SECONDS_PER_TURN = 10
       game.elapsed_seconds = 0
       game.heater_on = true
-      game.heater_effective = false
+      game.heater_effective = true
       game.heater_timer = 0
       game.turns_since_hunt = 0
       rooms = NewObjectList()
