@@ -345,6 +345,10 @@
         }
         prompt = "Select " + game.GHOST_COUNT + " ghosts (" + ListCount(game.terminal_chosen) + "/" + game.GHOST_COUNT + ")."
         show menu (prompt, menu, true) {
+          if (result = null) {
+            msg ("You step away from the terminal.")
+          }
+          else {
           pick = Replace(result, " (selected)", "")
           already = false
           foreach (s2, game.terminal_chosen) {
@@ -365,6 +369,7 @@
           }
           do (this, "ShowActionMenu")
         }
+      }
       ]]></ShowGuessMenu>
       <ShowActionMenu type="script"><![CDATA[
         if (ListCount(game.terminal_chosen) = 0) {
@@ -942,9 +947,10 @@
       msg ("Hints:")
       msg ("- Use tools in the same room as a ghost to get evidence.")
       msg ("- Candle light can block UV/SLS readings; blow it out first.")
-      msg ("- Freezing temps can be influenced by the heater.")
+      msg ("- Freezing temps (below 0) can be influenced by the heater.")
       msg ("- The terminal lets you select " + game.GHOST_COUNT + " ghosts and submit your guess.")
       msg ("- The journal contains ghost bios and your notes.")
+      msg ("- You can wait out hunts in a hiding spot!")
     </script>
   </command>
   <command name="exit_hiding">
