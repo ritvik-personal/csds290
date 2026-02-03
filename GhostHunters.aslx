@@ -65,9 +65,9 @@
         list add (game.ghost_rooms, rr)
         list remove (available_rooms, rr)
       }
-      msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.")
-      msg ("There are " + game.GHOST_COUNT + " supernatural presences in the house.")
-      msg ("Type 'help' for useful hints on how to play.")
+      msg ("Investigation Start. Find the ghosts. Inventory limit: 4 items.<br />")
+      msg ("There are " + game.GHOST_COUNT + " supernatural presences in the house.<br />")
+      msg ("Type <b>help</b> for useful hints on how to play.<br />")
     ]]></start>
     <turnscript name="global_turnscript">
       <enabled />
@@ -947,10 +947,10 @@
     <script>
       msg ("Hints:")
       msg ("- Use tools in the same room as a ghost to get evidence.")
-      msg ("- Candle light can block UV/SLS readings; blow it out first.")
+      msg ("- Candle light can interfere with UV prints and the SLS Camera")
       msg ("- Freezing temps (below 0) can be influenced by the heater.")
       msg ("- The terminal lets you select " + game.GHOST_COUNT + " ghosts and submit your guess.")
-      msg ("- The journal contains ghost bios and your notes.")
+      msg ("- The journal contains ghost bios and a space for notes.")
       msg ("- You can wait out hunts in a hiding spot!")
     </script>
   </command>
