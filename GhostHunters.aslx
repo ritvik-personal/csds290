@@ -620,7 +620,7 @@
           }
         }
         if (emf5) {
-          msg ("EMF Level 5! High activity.")
+          msg ("EMF Level 5! Maximum activity.")
         }
         else {
           msg ("EMF Level 1.")
