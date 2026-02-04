@@ -221,6 +221,7 @@
           // Reset the hiding spot buttons back to 'Hide in'
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
+          msg ("<hr />")
           MovePlayer (room_master_bedroom)
         </script>
       </exit>
@@ -258,6 +259,7 @@
           // Reset verbs for when the player is outside again
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
+          msg ("<hr />")
           MovePlayer (room_kitchen)
         </script>
       </exit>
@@ -296,6 +298,7 @@
           player.is_hiding = false
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
+          msg ("<hr />")
           MovePlayer (room_guest_bedroom)
         </script>
       </exit>
