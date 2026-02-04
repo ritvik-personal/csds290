@@ -195,8 +195,12 @@
   <object name="room_master_bedroom">
     <inherit name="editor_room" />
     <alias>Master Bedroom</alias>
-    <exit alias="east" to="room_kitchen" />
-    <exit alias="south" to="room_dining_room" />
+    <exit alias="east" to="room_kitchen">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_dining_room">
+      <script>msg ("<hr />")</script>
+    </exit>
     <object name="master_bedroom_closet">
       <inherit name="editor_object" />
       <alias>closet</alias>
@@ -221,7 +225,6 @@
           // Reset the hiding spot buttons back to 'Hide in'
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
-          msg ("<hr />")
           MovePlayer (room_master_bedroom)
         </script>
       </exit>
@@ -259,7 +262,6 @@
           // Reset verbs for when the player is outside again
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
-          msg ("<hr />")
           MovePlayer (room_kitchen)
         </script>
       </exit>
@@ -267,9 +269,15 @@
         <message>You remain silent, watching the door handle... time passes.</message>
       </exit>
     </object>
-    <exit alias="west" to="room_master_bedroom" />
-    <exit alias="east" to="room_guest_bedroom" />
-    <exit alias="south" to="room_storage_room" />
+    <exit alias="west" to="room_master_bedroom">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="east" to="room_guest_bedroom">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_storage_room">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <object name="room_guest_bedroom">
     <inherit name="editor_room" />
@@ -298,7 +306,6 @@
           player.is_hiding = false
           player.parent.displayverbs = Split("Look at;Hide in", ";")
           msg ("You cautiously step out from your hiding spot.")
-          msg ("<hr />")
           MovePlayer (room_guest_bedroom)
         </script>
       </exit>
@@ -306,23 +313,41 @@
         <message>You remain silent, watching the door handle... time passes.</message>
       </exit>
     </object>
-    <exit alias="west" to="room_kitchen" />
-    <exit alias="south" to="room_home_office" />
+    <exit alias="west" to="room_kitchen">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_home_office">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <object name="room_dining_room">
     <inherit name="editor_room" />
     <alias>Dining Room</alias>
-    <exit alias="north" to="room_master_bedroom" />
-    <exit alias="east" to="room_storage_room" />
-    <exit alias="south" to="room_study" />
+    <exit alias="north" to="room_master_bedroom">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="east" to="room_storage_room">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_study">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <object name="room_storage_room">
     <inherit name="editor_room" />
     <alias>Storage Room</alias>
-    <exit alias="north" to="room_kitchen" />
-    <exit alias="south" to="room_basement" />
-    <exit alias="west" to="room_dining_room" />
-    <exit alias="east" to="room_home_office" />
+    <exit alias="north" to="room_kitchen">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_basement">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="west" to="room_dining_room">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="east" to="room_home_office">
+      <script>msg ("<hr />")</script>
+    </exit>
     <object name="ghost_database_terminal">
       <inherit name="editor_object" />
       <alias>Ghost Database Terminal</alias>
@@ -870,9 +895,15 @@
   <object name="room_basement">
     <inherit name="editor_room" />
     <alias>Basement</alias>
-    <exit alias="north" to="room_storage_room" />
-    <exit alias="west" to="room_study" />
-    <exit alias="east" to="room_tv_room" />
+    <exit alias="north" to="room_storage_room">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="west" to="room_study">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="east" to="room_tv_room">
+      <script>msg ("<hr />")</script>
+    </exit>
     <object name="house_heater">
       <inherit name="editor_object" />
       <alias>Heater Switch</alias>
@@ -907,21 +938,35 @@
   <object name="room_home_office">
     <inherit name="editor_room" />
     <alias>Home Office</alias>
-    <exit alias="north" to="room_guest_bedroom" />
-    <exit alias="west" to="room_storage_room" />
-    <exit alias="south" to="room_tv_room" />
+    <exit alias="north" to="room_guest_bedroom">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="west" to="room_storage_room">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="south" to="room_tv_room">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <object name="room_study">
     <inherit name="editor_room" />
     <alias>Study</alias>
-    <exit alias="north" to="room_dining_room" />
-    <exit alias="east" to="room_basement" />
+    <exit alias="north" to="room_dining_room">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="east" to="room_basement">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <object name="room_tv_room">
     <inherit name="editor_room" />
     <alias>TV Room</alias>
-    <exit alias="north" to="room_home_office" />
-    <exit alias="west" to="room_basement" />
+    <exit alias="north" to="room_home_office">
+      <script>msg ("<hr />")</script>
+    </exit>
+    <exit alias="west" to="room_basement">
+      <script>msg ("<hr />")</script>
+    </exit>
   </object>
   <verb>
     <property>hide_in</property>
