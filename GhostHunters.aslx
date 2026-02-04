@@ -163,15 +163,23 @@
 
   </game>
 
-  <object name="room_master_bedroom">
+  <!-- Base room: prints a horizontal rule whenever you enter a room -->
+  <object name="room_base">
     <inherit name="editor_room" />
+    <enter type="script">
+      msg ("<hr style='border:1px solid #444; margin:10px 0;'/>")
+    </enter>
+  </object>
+
+  <object name="room_master_bedroom">
+    <inherit name="room_base" />
     <alias>Master Bedroom</alias>
     <exit alias="east" to="room_kitchen" />
     <exit alias="south" to="room_dining_room" />
   </object>
 
   <object name="room_kitchen">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Kitchen</alias>
     <exit alias="west" to="room_master_bedroom" />
     <exit alias="east" to="room_guest_bedroom" />
@@ -179,14 +187,14 @@
   </object>
 
   <object name="room_guest_bedroom">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Guest Bedroom</alias>
     <exit alias="west" to="room_kitchen" />
     <exit alias="south" to="room_home_office" />
   </object>
 
   <object name="room_dining_room">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Dining Room</alias>
     <exit alias="north" to="room_master_bedroom" />
     <exit alias="east" to="room_storage_room" />
@@ -194,7 +202,7 @@
   </object>
 
   <object name="room_storage_room">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Storage Room</alias>
     <exit alias="north" to="room_kitchen" />
     <exit alias="south" to="room_basement" />
@@ -578,7 +586,7 @@
   </object>
 
   <object name="room_basement">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Basement</alias>
     <exit alias="north" to="room_storage_room" />
     <exit alias="west" to="room_study" />
@@ -608,7 +616,7 @@
   </object>
 
   <object name="room_home_office">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Home Office</alias>
     <exit alias="north" to="room_guest_bedroom" />
     <exit alias="west" to="room_storage_room" />
@@ -616,14 +624,14 @@
   </object>
 
   <object name="room_study">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>Study</alias>
     <exit alias="north" to="room_dining_room" />
     <exit alias="east" to="room_basement" />
   </object>
 
   <object name="room_tv_room">
-    <inherit name="editor_room" />
+    <inherit name="room_base" />
     <alias>TV Room</alias>
     <exit alias="north" to="room_home_office" />
     <exit alias="west" to="room_basement" />
